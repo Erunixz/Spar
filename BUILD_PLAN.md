@@ -101,7 +101,7 @@ Copy the Duolingo English Test's shape: a fast adaptive section of auto-graded m
 
 **What transfers from Duolingo.** The DET is [computer adaptive and scores with IRT](https://blog.englishtest.duolingo.com/how-is-the-duolingo-english-test-scored/), weighing both correctness and item difficulty. Its adaptive items all have an objectively correct answer so they score in real time, while open-ended prompts are scored separately ([Times Higher Education](https://www.timeshighereducation.com/student/blogs/what-questions-can-students-expect-duolingo-english-test)). Duolingo also predicted item difficulty from text to avoid costly pilot testing ([TACL paper](https://transacl.org/index.php/tacl/article/view/1743)), which is exactly what Model #2 does.
 
-**Placement test (about 10 minutes).** Micro-items take 30 to 90 seconds each: name the pattern, pick the complexity, predict the output, spot the bug. After each answer, update a per-pattern ability estimate (Rasch with a shared prior), then serve the item with the most information on the most uncertain weak pattern. Stop at a standard-error threshold or 20 items, then give one short coding problem.
+**Placement test (about 10 minutes).** Micro-items take 30 to 90 seconds each: name the pattern, pick the complexity, predict the output, spot the bug. After each answer, update a per-pattern ability estimate (Rasch with a shared prior), then serve the item with the most information on the most uncertain weak pattern. Stop at a standard-error threshold or 20 items, then give one short coding problem. When the user has filled in the comfort survey, its ratings set each pattern's starting estimate, so the test spends its items checking the claims instead of starting from zero.
 
 **Structured coding mock (25 to 45 minutes, text first).** Interviewers commonly score [Algorithms, Coding, Communication and Problem Solving, each 1 to 4](https://prepfully.com/interview-guides/google-software-engineer-coding-interview). Each stage below is scored without an LLM, so results are free, deterministic and explainable.
 
@@ -166,14 +166,15 @@ Onsite finds the patterns you're weakest at in 10 minutes, then spends whatever 
 | Pattern Spotter drills: name the pattern, pick the complexity, timed mode | MVP | Hits the top pain; smallest shippable slice |
 | Skill graph: every topic's mastery and solved counts (Easy, Medium, Hard), shareable image | MVP | The hook people post |
 | Session builder: pick 10, 30 or 60 minutes, filled by the weakness-matched recommender (drills + LeetCode links) | MVP | Your flexible-time requirement |
-| Local-first progress, no account needed | MVP | Zero friction, zero cost |
+| Local-first progress, no account needed to start | MVP | Zero friction, zero cost |
 | Quick log of LeetCode attempts (link + self-rating) | MVP | Feeds the skill map from real practice |
 | Visual tab v1: arrays with named pointers, variables, call stack | MVP | The demo GIF |
+| Comfort survey: after first sign-in, rate how comfortable you feel with each topic (one tap per pattern, skippable, retake any time) | v2 | Personalizes recommendations from minute one; seeds the placement test; "you rated X 4/5, you measure 38" is a useful insight on its own |
 | Placement test (CAT) and periodic re-assessment | v2 | The Duolingo-style diagnosis |
 | Original coding problems with tests, structured mock, rubric report | v2 | Interview simulation |
 | Visual tab v2: linked lists, trees, DP grid, recursion tree | v2 | Hardest topics to picture |
 | FSRS over skills + readiness score | v2 | Retention and "am I ready" |
-| Optional GitHub login, sync, opt-in anonymized logs | v2 | Data for calibration |
+| Accounts: sign in with GitHub or Google; all progress (answers, sessions, LeetCode logs, recommendation log) synced and kept across devices; signed-out use still works | v2 | Nothing is lost when you switch devices or clear the browser, and synced logs feed calibration and Phase 9 |
 | Public /lab page with model cards and metrics | v2 | Recruiter magnet |
 | Voice mock mode; in-browser LLM follow-ups; DKT; opt-in leagues; JS views | Stretch | Only after the core is solid |
 
@@ -226,7 +227,7 @@ Cloudflare only serves static files and stores opt-in responses; the browser run
 | Hosting | [Cloudflare Pages](https://flaviocopes.com/hosting-free-tiers/) | Static requests free and unlimited on every plan |
 | API | Cloudflare Workers + Hono | 100,000 requests/day free |
 | Database | Cloudflare D1 | Free daily allowance of [5M row reads and 100K row writes](https://eastondev.com/blog/en/posts/dev/20260526-cloudflare-free-limits/); since Sept 1, 2026, over-limit queries [fail instead of billing](https://developers.cloudflare.com/changelog/post/2026-09-01-d1-free-tier-limit-enforcement/) |
-| Auth | GitHub OAuth in the Worker | Your audience already has GitHub; verify library support for Workers at setup |
+| Auth | GitHub and Google OAuth in the Worker (e.g. the Arctic library); session in an HttpOnly, Secure, SameSite=Lax cookie | Both free; your audience already has GitHub, Google covers everyone else. Verify library support for Workers at setup. Email magic links skipped for now: they need a paid or rate-limited email sender |
 | Training | PyTorch + Hugging Face on Kaggle/Colab free GPUs; Optimum for ONNX export and int8 | Free GPUs, browser-ready output |
 | Calibration jobs | GitHub Actions cron running Python (py-irt or girth) | Free for public repos; writes item parameters to D1 |
 | Domain | A subdomain of erfanzamani.com, or free \*.pages.dev | No extra cost |
@@ -254,7 +255,9 @@ Why not Supabase: [free projects pause after 7 days of inactivity](https://www.j
 
 | Table | Key fields |
 | --- | --- |
-| users | id, github\_id, settings, created\_at |
+| users | id, display\_name, settings, created\_at, deleted\_at |
+| identities | user\_id, provider (github, google), provider\_user\_id, created\_at |
+| auth\_sessions | id, user\_id, expires\_at, created\_at |
 | patterns | id, name, layer, prerequisite\_ids |
 | items | id, type (pattern, complexity, trace, bug, coding), body\_md, answer, pattern\_ids, est\_seconds |
 | item\_params | item\_id, difficulty\_b, discrimination\_a, source (prior or calibrated), updated\_at |
@@ -264,9 +267,10 @@ Why not Supabase: [free projects pause after 7 days of inactivity](https://www.j
 | skill\_state | user\_id, pattern\_id, theta, se, solved\_easy, solved\_medium, solved\_hard, fsrs\_stability, fsrs\_difficulty, due\_at |
 | recommendations | id, user\_id, candidate\_ref, features, score, reason, shown\_at, outcome |
 | sessions | id, user\_id, minutes\_planned, mode, started\_at, ended\_at |
+| self\_ratings | id, user\_id, pattern\_id, rating (1 to 5, or null for "not sure"), params\_version, ts; append-only so retakes keep history |
 | mocks | id, user\_id, problem\_id, stage\_scores, rubric, created\_at |
 
-The same schema lives in IndexedDB; the client syncs responses once at the end of a session.
+The same schema lives in IndexedDB. Every synced row has a client-generated UUID, a user\_id and an updated\_at, so sync is an idempotent upsert and two devices never collide on ids. The client pushes new and changed rows at the end of each session (and when it comes back online), and pulls rows changed since its last sync on startup.
 
 ### Engineering quality signals
 
@@ -275,7 +279,7 @@ The same schema lives in IndexedDB; the client syncs responses once at the end o
 - CI on every push: lint, typecheck, tests, build, a performance budget, and a small model-eval fixture
 - Observability: Workers analytics, structured logs, client error reporting
 - Public /lab page: model cards (data, splits, metrics, limits, license notes), CAT simulation plot, calibration curve
-- Security: user code runs only in their browser worker; content security policy; API rate limits; no PII beyond a GitHub id
+- Security: user code runs only in their browser worker; content security policy; API rate limits; every API query scoped to the signed-in user; no PII beyond the provider's user id and a display name (no email stored); account deletion removes all server rows
 
 ### How to present it
 
@@ -306,6 +310,8 @@ The same schema lives in IndexedDB; the client syncs responses once at the end o
 | Free-tier changes | Hard caps that fail closed, batched writes, offline-capable client |
 | Weak small-LLM output | It never grades; scoring stays deterministic |
 | Seen as a cheating tool | No real-time interview assistance, ever |
+| Holding user accounts and progress | Store only provider id and display name; per-user scoping on every query; account deletion and full export; privacy note on the sign-in page |
+| Sync conflicts or lost progress across devices | Client UUIDs, idempotent upserts, append-only logs (answers and LeetCode logs are never edited in place), two-device end-to-end test |
 
 ## Build plan
 
@@ -334,8 +340,14 @@ Nine phases, each ending in a working app you can demo locally. Deployment is Ph
    - Done: metrics and browser latency on /lab. Show: the model card.
 5. **Placement test + backend.** Goal: the Duolingo-style diagnosis.
    - Model #2 difficulty priors; Rasch/2PL, max-information selection and a standard-error stop rule in TypeScript; catsim simulation comparing adaptive vs fixed form.
-   - Workers + D1 + GitHub OAuth, built and tested locally with wrangler dev; opt-in sync of responses, LeetCode logs and the recommendation log; calibration script (scheduled nightly after deploy).
-   - Done: placement finishes in 10 minutes or less; simulation plot on /lab. Show: "finds weak areas in K items."
+   - Workers + D1, built and tested locally with wrangler dev; calibration script (scheduled nightly after deploy).
+   - Accounts: sign in with GitHub or Google, sign out, link a second provider to the same account, delete account (removes every server row), download all data.
+   - Sync of everything: responses, sessions, LeetCode logs and the recommendation log. Local rows get UUIDs (a Dexie migration from today's auto-increment ids); push at session end and on reconnect, pull on startup; idempotent upserts, last write wins by updated\_at.
+   - First sign-in on a device that already has local progress asks whether to merge it into the account, so nothing practiced before signing up is lost. Signed out, the app keeps working fully offline as today.
+   - Comfort survey right after first sign-in (when the account has no ratings yet): one screen, every pattern with a 5-point scale (1 never seen it, 2 know the idea, 3 can solve easy ones, 4 can solve mediums, 5 comfortable with hards) plus "not sure"; skippable, retake from settings. Signed-out first-time users get the same survey, also skippable.
+   - Ratings become each pattern's prior: rating maps to a starting theta (v1 mapping hand-set in params.ts, e.g. 1 to -1.5 up to 5 to +1.5), with the prior SD kept wide so real answers override a wrong self-assessment within a few items. Skipped or "not sure" keeps today's neutral prior. The skill graph shows self-rating next to measured mastery and flags big gaps.
+   - Tests: auth flow and session-cookie handling in the Worker, sync merge and conflict cases, a two-device Playwright test (progress made on one appears on the other).
+   - Done: placement finishes in 10 minutes or less; progress made signed in on one browser shows up on another; simulation plot on /lab. Show: "finds weak areas in K items."
 6. **Coding problems + structured mock.** Goal: interview simulation.
    - 30 original problems with tests and hint ladders; Model #3 complexity classifier; staged mock with rubric report and share link.
    - Done: you complete 5 mocks. Show: a report screenshot.
@@ -349,6 +361,7 @@ Nine phases, each ending in a working app you can demo locally. Deployment is Ph
    - Inputs: synced responses, LeetCode logs and the recommendation log (plus your own pre-launch JSON export), each row tagged with the params version that produced it.
    - Elo learning rates and prior SD: grid or gradient search minimizing the Brier score of next-answer predictions on a time-based holdout.
    - LeetCode difficulty priors and outcome scores: fit to logged outcomes by maximum likelihood.
+   - Survey mapping: fit the self-rating to starting-theta mapping (and how much to trust it, i.e. its prior SD) against the mastery each user later measures; tells you whether people over- or under-rate themselves per pattern.
    - Recommender weights and target band: off-policy evaluation of candidate params against the v1 rules, using the logged runner-up scores and noise to recover selection propensities; the reward is mastery gained per minute. Feeds Model #4.
    - Ship each result as a new `params.ts` version; A/B test against the previous version before switching everyone.
    - Done: a params version learned from data beats v1 on held-out Brier score and on offline reward. Show: a before/after calibration plot and the learned-vs-guessed weight table on /lab.
@@ -395,14 +408,14 @@ onsite/
 2. Install Node, pnpm, Python and wrangler; run the web app with Vite, and the Worker with a local D1 via wrangler dev.
 3. Create a Hugging Face account and public model repos for the ONNX files.
 4. Use Kaggle or Colab notebooks with the free GPU for training.
-5. Register a development GitHub OAuth app with a localhost callback URL.
+5. Register development OAuth apps with localhost callback URLs: a GitHub OAuth app and a Google OAuth client (Google Cloud console, free). Their secrets go in apps/api/.dev.vars, never in VITE\_\* variables.
 
 **Final phase (deploy):**
 
 1. Create a free Cloudflare account and a Pages project linked to the repo; build the web app; output apps/web/dist.
 2. Create the production D1 database and Worker; bind D1 in wrangler config; run migrations.
 3. Point a subdomain of erfanzamani.com at the Pages project with a CNAME record.
-4. Register a production GitHub OAuth app with the live callback URL.
+4. Register production GitHub and Google OAuth apps with the live callback URL; store their secrets as Worker secrets (wrangler secret put).
 5. Add the Cloudflare API token and IDs as GitHub Actions secrets, then turn on nightly calibration.
 
 ### Model training workflow
