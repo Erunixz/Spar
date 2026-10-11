@@ -26,7 +26,9 @@ export function sparContent(contentDir: string): Plugin {
       if (id !== RESOLVED_ID) return
       this.addWatchFile(patternsFile)
       this.addWatchFile(catalogFile)
-      this.addWatchFile(itemsDir)
+      // Files only: in dev, Vite resolves watch files as module deps, and a
+      // directory can't be resolved. New or deleted items are picked up by
+      // the watcher in configureServer.
       const itemFiles = readdirSync(itemsDir).filter((f) => f.endsWith('.yaml'))
       for (const f of itemFiles) this.addWatchFile(join(itemsDir, f))
       const { patterns, items, lcCatalog } = validateContent(
