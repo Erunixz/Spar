@@ -1,19 +1,20 @@
 import { content } from '../../content'
-import type { ResponseRow } from '../../db'
+import type { LcLogRow, ResponseRow } from '../../db'
 import { summarizeSession } from '../../engine/session'
 import { formatClock } from './useNow'
 
 interface Props {
   sessionId: string
   responses: ResponseRow[]
+  lcLogs: LcLogRow[]
   onAgain: () => void
   onViewSkills: () => void
 }
 
 const patternIds = content.patterns.map((p) => p.id)
 
-export function SessionSummary({ sessionId, responses, onAgain, onViewSkills }: Props) {
-  const s = summarizeSession(patternIds, content.itemsById, responses, sessionId)
+export function SessionSummary({ sessionId, responses, lcLogs, onAgain, onViewSkills }: Props) {
+  const s = summarizeSession(patternIds, content.itemsById, responses, sessionId, lcLogs)
 
   return (
     <div className="mx-auto max-w-xl space-y-6">

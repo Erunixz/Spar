@@ -28,14 +28,25 @@ export const itemSchema = z.strictObject({
   explanation: z.string().min(1),
 })
 
+/** A LeetCode problem reference: public metadata plus our own tags, never problem text. */
+export const lcProblemSchema = z.strictObject({
+  slug,
+  number: z.number().int().positive(),
+  difficulty: z.enum(DIFFICULTIES),
+  pattern_ids: z.array(slug).min(1),
+})
+
 export type Pattern = z.infer<typeof patternSchema>
 export type Item = z.infer<typeof itemSchema>
+export type LcProblem = z.infer<typeof lcProblemSchema>
 
 export interface Content {
   patterns: Pattern[]
   patternsById: Map<string, Pattern>
   items: Item[]
   itemsById: Map<string, Item>
+  lcCatalog: LcProblem[]
+  lcBySlug: Map<string, LcProblem>
 }
 
 export interface RawItemFile {
@@ -45,7 +56,7 @@ export interface RawItemFile {
 }
 
 /** Parses and cross-checks all content. Throws one error listing every problem found. */
-export function validateContent(rawPatterns: unknown, rawItems: RawItemFile[]): Content {
+export function validateContent(rawPatterns: unknown, rawItems: RawItemFile[], rawCatalog: unknown = []): Content {
   const problems: string[] = []
 
   const patternsResult = z.array(patternSchema).safeParse(rawPatterns)
@@ -94,7 +105,24 @@ export function validateContent(rawPatterns: unknown, rawItems: RawItemFile[]): 
     items.push(item)
   }
 
+  const catalogResult = z.array(lcProblemSchema).safeParse(rawCatalog)
+  if (!catalogResult.success) {
+    throw new Error(`lc_catalog.yaml is invalid:\n${z.prettifyError(catalogResult.error)}`)
+  }
+  const lcCatalog = catalogResult.data
+  const lcBySlug = new Map<string, LcProblem>()
+  const lcNumbers = new Set<number>()
+  for (const lc of lcCatalog) {
+    if (lcBySlug.has(lc.slug)) problems.push(`lc_catalog.yaml: duplicate slug "${lc.slug}"`)
+    if (lcNumbers.has(lc.number)) problems.push(`lc_catalog.yaml: duplicate number ${lc.number}`)
+    for (const pid of lc.pattern_ids) {
+      if (!patternsById.has(pid)) problems.push(`lc_catalog.yaml: ${lc.slug} has unknown pattern id "${pid}"`)
+    }
+    lcBySlug.set(lc.slug, lc)
+    lcNumbers.add(lc.number)
+  }
+
   if (problems.length > 0) throw new Error(`Content is invalid:\n${problems.join('\n')}`)
   items.sort((a, b) => a.id.localeCompare(b.id))
-  return { patterns, patternsById, items, itemsById }
+  return { patterns, patternsById, items, itemsById, lcCatalog, lcBySlug }
 }

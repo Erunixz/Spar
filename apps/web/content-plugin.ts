@@ -8,13 +8,14 @@ const VIRTUAL_ID = 'virtual:spar-content'
 const RESOLVED_ID = '\0' + VIRTUAL_ID
 
 /**
- * Reads content/patterns.yaml and content/items/*.yaml, validates them, and
- * exposes the result as a JSON module. YAML parsing and schema checks stay
- * out of the browser bundle, and bad content fails the build.
+ * Reads content/patterns.yaml, content/items/*.yaml and content/lc_catalog.yaml,
+ * validates them, and exposes the result as a JSON module. YAML parsing and
+ * schema checks stay out of the browser bundle, and bad content fails the build.
  */
 export function sparContent(contentDir: string): Plugin {
   const itemsDir = join(contentDir, 'items')
   const patternsFile = join(contentDir, 'patterns.yaml')
+  const catalogFile = join(contentDir, 'lc_catalog.yaml')
 
   return {
     name: 'spar-content',
@@ -24,14 +25,16 @@ export function sparContent(contentDir: string): Plugin {
     load(id) {
       if (id !== RESOLVED_ID) return
       this.addWatchFile(patternsFile)
+      this.addWatchFile(catalogFile)
       this.addWatchFile(itemsDir)
       const itemFiles = readdirSync(itemsDir).filter((f) => f.endsWith('.yaml'))
       for (const f of itemFiles) this.addWatchFile(join(itemsDir, f))
-      const { patterns, items } = validateContent(
+      const { patterns, items, lcCatalog } = validateContent(
         parse(readFileSync(patternsFile, 'utf8')),
         itemFiles.map((file) => ({ file, data: parse(readFileSync(join(itemsDir, file), 'utf8')) })),
+        parse(readFileSync(catalogFile, 'utf8')),
       )
-      return `export default ${JSON.stringify({ patterns, items })}`
+      return `export default ${JSON.stringify({ patterns, items, lcCatalog })}`
     },
     configureServer(server) {
       // Reload when an item file is added, edited or removed.

@@ -7,7 +7,9 @@ export const content: Content = {
   patternsById: new Map(data.patterns.map((p) => [p.id, p])),
   items: data.items,
   itemsById: new Map(data.items.map((i) => [i.id, i])),
+  lcCatalog: data.lcCatalog,
+  lcBySlug: new Map(data.lcCatalog.map((p) => [p.slug, p])),
 }
 
-export type { Content, Item, Pattern, Difficulty, Layer } from './schema'
+export type { Content, Item, LcProblem, Pattern, Difficulty, Layer } from './schema'
 export { LAYERS } from './constants'

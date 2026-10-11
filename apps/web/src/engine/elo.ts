@@ -38,14 +38,18 @@ export function kFactor(n: number): number {
   return Math.max(K_MIN, K_MAX / (1 + n / K_HALF_LIFE))
 }
 
-/** Returns the updated person rating and item difficulty after one response. */
+/**
+ * Returns the updated person rating and item difficulty after one response.
+ * score is 1 for correct and 0 for wrong; values in between give partial
+ * credit (e.g. a LeetCode solve that needed hints).
+ */
 export function update(
   rating: Rating,
   b: number,
-  correct: boolean,
+  score: boolean | number,
 ): { rating: Rating; b: number } {
   const p = pCorrect(rating.theta, b)
-  const surprise = (correct ? 1 : 0) - p
+  const surprise = (typeof score === 'boolean' ? (score ? 1 : 0) : score) - p
   return {
     rating: {
       theta: rating.theta + kFactor(rating.n) * surprise,

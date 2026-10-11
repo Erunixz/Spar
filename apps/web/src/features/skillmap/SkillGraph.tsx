@@ -9,7 +9,7 @@ const LAYER_LABEL: Record<Layer, string> = {
 }
 
 function tone(skill: PatternSkill) {
-  if (skill.attempts === 0) return { bar: 'bg-slate-400', text: 'text-slate-400' }
+  if (skill.attempts === 0 && skill.lcLogged === 0) return { bar: 'bg-slate-400', text: 'text-slate-400' }
   if (skill.mastery < 40) return { bar: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400' }
   if (skill.mastery < 70) return { bar: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' }
   return { bar: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' }
@@ -18,7 +18,7 @@ function tone(skill: PatternSkill) {
 function PatternCard({ pattern, skill }: { pattern: Pattern; skill: PatternSkill }) {
   const t = tone(skill)
   const [lo, hi] = skill.band
-  const started = skill.attempts > 0
+  const started = skill.attempts > 0 || skill.lcLogged > 0
   const prereqs = pattern.prerequisites.map((id) => content.patternsById.get(id)?.name ?? id)
 
   return (
@@ -43,26 +43,38 @@ function PatternCard({ pattern, skill }: { pattern: Pattern; skill: PatternSkill
         <div className={`absolute inset-y-0 left-0 rounded-full ${t.bar}`} style={{ width: `${skill.mastery}%` }} />
       </div>
 
-      <dl className="grid grid-cols-3 gap-1 text-center text-xs">
-        {(['easy', 'medium', 'hard'] as const).map((d) => (
-          <div key={d} className="rounded-md bg-slate-50 py-1 dark:bg-slate-800/60">
-            <dt className="capitalize text-slate-500 dark:text-slate-400">{d}</dt>
-            <dd className="font-semibold tabular-nums">{skill.solved[d]}</dd>
-          </div>
-        ))}
-      </dl>
+      <div>
+        <p className="mb-1 text-[11px] uppercase tracking-wide text-slate-400">LeetCode solved</p>
+        <dl className="grid grid-cols-3 gap-1 text-center text-xs">
+          {(['easy', 'medium', 'hard'] as const).map((d) => (
+            <div key={d} className="rounded-md bg-slate-50 py-1 dark:bg-slate-800/60">
+              <dt className="capitalize text-slate-500 dark:text-slate-400">{d}</dt>
+              <dd className="font-semibold tabular-nums">{skill.lcSolved[d]}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
 
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        {started
-          ? `${skill.attempts} attempts · ${Math.round((skill.recentAccuracy ?? 0) * 100)}% recent · ${((skill.medianLatencyMs ?? 0) / 1000).toFixed(1)}s median`
-          : 'Not practiced yet'}
+        {skill.attempts > 0
+          ? `Drills: ${skill.attempts} answered · ${Math.round((skill.recentAccuracy ?? 0) * 100)}% recent · ${((skill.medianLatencyMs ?? 0) / 1000).toFixed(1)}s median`
+          : started
+            ? 'No drills yet'
+            : 'Not practiced yet'}
       </p>
       {prereqs.length > 0 && <p className="text-xs text-slate-400 dark:text-slate-500">Builds on {prereqs.join(', ')}</p>}
     </div>
   )
 }
 
-export function SkillGraph({ skills, onReset }: { skills: SkillState; onReset: () => void }) {
+interface Props {
+  skills: SkillState
+  /** Distinct LeetCode problems solved; summed per pattern would double-count multi-tag problems. */
+  lcSolvedTotal: number
+  onReset: () => void
+}
+
+export function SkillGraph({ skills, lcSolvedTotal, onReset }: Props) {
   const all = [...skills.patterns.values()]
   const attempts = all.reduce((n, s) => n + s.attempts, 0)
   const correct = all.reduce((n, s) => n + s.correct, 0)
@@ -80,7 +92,8 @@ export function SkillGraph({ skills, onReset }: { skills: SkillState; onReset: (
         <div className="flex gap-6 text-sm">
           <Stat label="Answered" value={attempts} />
           <Stat label="Accuracy" value={attempts ? `${Math.round((correct / attempts) * 100)}%` : '—'} />
-          <Stat label="Items solved" value={`${solved}/${content.items.length}`} />
+          <Stat label="Drill items solved" value={`${solved}/${content.items.length}`} />
+          <Stat label="LeetCode solved" value={lcSolvedTotal} />
         </div>
       </div>
 
@@ -101,7 +114,7 @@ export function SkillGraph({ skills, onReset }: { skills: SkillState; onReset: (
         )
       })}
 
-      {attempts > 0 && (
+      {(attempts > 0 || all.some((s) => s.lcLogged > 0)) && (
         <button
           type="button"
           onClick={onReset}

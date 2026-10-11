@@ -1,0 +1,110 @@
+# LeetCode problems Spar can recommend and recognise in the quick log.
+# Only public metadata (slug, number, difficulty label) plus our own pattern
+# tags. Never add problem statements, examples or solutions here.
+# Links are built as https://leetcode.com/problems/<slug>/
+
+# arrays-hashing
+- { slug: two-sum, number: 1, difficulty: easy, pattern_ids: [arrays-hashing] }
+- { slug: contains-duplicate, number: 217, difficulty: easy, pattern_ids: [arrays-hashing] }
+- { slug: valid-anagram, number: 242, difficulty: easy, pattern_ids: [arrays-hashing] }
+- { slug: group-anagrams, number: 49, difficulty: medium, pattern_ids: [arrays-hashing] }
+- { slug: top-k-frequent-elements, number: 347, difficulty: medium, pattern_ids: [arrays-hashing, heap] }
+- { slug: longest-consecutive-sequence, number: 128, difficulty: medium, pattern_ids: [arrays-hashing] }
+
+# prefix-sum
+- { slug: range-sum-query-immutable, number: 303, difficulty: easy, pattern_ids: [prefix-sum] }
+- { slug: product-of-array-except-self, number: 238, difficulty: medium, pattern_ids: [prefix-sum] }
+- { slug: subarray-sum-equals-k, number: 560, difficulty: medium, pattern_ids: [prefix-sum, arrays-hashing] }
+- { slug: continuous-subarray-sum, number: 523, difficulty: medium, pattern_ids: [prefix-sum, arrays-hashing] }
+
+# two-pointers
+- { slug: valid-palindrome, number: 125, difficulty: easy, pattern_ids: [two-pointers] }
+- { slug: two-sum-ii-input-array-is-sorted, number: 167, difficulty: medium, pattern_ids: [two-pointers] }
+- { slug: 3sum, number: 15, difficulty: medium, pattern_ids: [two-pointers] }
+- { slug: container-with-most-water, number: 11, difficulty: medium, pattern_ids: [two-pointers] }
+- { slug: trapping-rain-water, number: 42, difficulty: hard, pattern_ids: [two-pointers] }
+
+# sliding-window
+- { slug: best-time-to-buy-and-sell-stock, number: 121, difficulty: easy, pattern_ids: [sliding-window] }
+- { slug: longest-substring-without-repeating-characters, number: 3, difficulty: medium, pattern_ids: [sliding-window] }
+- { slug: longest-repeating-character-replacement, number: 424, difficulty: medium, pattern_ids: [sliding-window] }
+- { slug: permutation-in-string, number: 567, difficulty: medium, pattern_ids: [sliding-window] }
+- { slug: minimum-window-substring, number: 76, difficulty: hard, pattern_ids: [sliding-window] }
+- { slug: sliding-window-maximum, number: 239, difficulty: hard, pattern_ids: [sliding-window, monotonic-stack] }
+
+# binary-search
+- { slug: binary-search, number: 704, difficulty: easy, pattern_ids: [binary-search] }
+- { slug: search-a-2d-matrix, number: 74, difficulty: medium, pattern_ids: [binary-search] }
+- { slug: koko-eating-bananas, number: 875, difficulty: medium, pattern_ids: [binary-search] }
+- { slug: find-minimum-in-rotated-sorted-array, number: 153, difficulty: medium, pattern_ids: [binary-search] }
+- { slug: search-in-rotated-sorted-array, number: 33, difficulty: medium, pattern_ids: [binary-search] }
+- { slug: median-of-two-sorted-arrays, number: 4, difficulty: hard, pattern_ids: [binary-search] }
+
+# monotonic-stack
+- { slug: valid-parentheses, number: 20, difficulty: easy, pattern_ids: [monotonic-stack] }
+- { slug: min-stack, number: 155, difficulty: medium, pattern_ids: [monotonic-stack] }
+- { slug: evaluate-reverse-polish-notation, number: 150, difficulty: medium, pattern_ids: [monotonic-stack] }
+- { slug: daily-temperatures, number: 739, difficulty: medium, pattern_ids: [monotonic-stack] }
+- { slug: largest-rectangle-in-histogram, number: 84, difficulty: hard, pattern_ids: [monotonic-stack] }
+
+# intervals
+- { slug: merge-intervals, number: 56, difficulty: medium, pattern_ids: [intervals] }
+- { slug: insert-interval, number: 57, difficulty: medium, pattern_ids: [intervals] }
+- { slug: non-overlapping-intervals, number: 435, difficulty: medium, pattern_ids: [intervals, greedy] }
+- { slug: minimum-interval-to-include-each-query, number: 1851, difficulty: hard, pattern_ids: [intervals, heap] }
+
+# greedy
+- { slug: maximum-subarray, number: 53, difficulty: medium, pattern_ids: [greedy, dynamic-programming] }
+- { slug: jump-game, number: 55, difficulty: medium, pattern_ids: [greedy] }
+- { slug: jump-game-ii, number: 45, difficulty: medium, pattern_ids: [greedy] }
+- { slug: gas-station, number: 134, difficulty: medium, pattern_ids: [greedy] }
+- { slug: hand-of-straights, number: 846, difficulty: medium, pattern_ids: [greedy, arrays-hashing] }
+
+# linked-list
+- { slug: reverse-linked-list, number: 206, difficulty: easy, pattern_ids: [linked-list] }
+- { slug: merge-two-sorted-lists, number: 21, difficulty: easy, pattern_ids: [linked-list] }
+- { slug: linked-list-cycle, number: 141, difficulty: easy, pattern_ids: [linked-list] }
+- { slug: reorder-list, number: 143, difficulty: medium, pattern_ids: [linked-list] }
+- { slug: remove-nth-node-from-end-of-list, number: 19, difficulty: medium, pattern_ids: [linked-list, two-pointers] }
+- { slug: merge-k-sorted-lists, number: 23, difficulty: hard, pattern_ids: [linked-list, heap] }
+
+# trees
+- { slug: invert-binary-tree, number: 226, difficulty: easy, pattern_ids: [trees] }
+- { slug: maximum-depth-of-binary-tree, number: 104, difficulty: easy, pattern_ids: [trees] }
+- { slug: same-tree, number: 100, difficulty: easy, pattern_ids: [trees] }
+- { slug: binary-tree-level-order-traversal, number: 102, difficulty: medium, pattern_ids: [trees] }
+- { slug: validate-binary-search-tree, number: 98, difficulty: medium, pattern_ids: [trees] }
+- { slug: lowest-common-ancestor-of-a-binary-search-tree, number: 235, difficulty: medium, pattern_ids: [trees] }
+- { slug: binary-tree-maximum-path-sum, number: 124, difficulty: hard, pattern_ids: [trees] }
+
+# heap
+- { slug: kth-largest-element-in-a-stream, number: 703, difficulty: easy, pattern_ids: [heap] }
+- { slug: last-stone-weight, number: 1046, difficulty: easy, pattern_ids: [heap] }
+- { slug: k-closest-points-to-origin, number: 973, difficulty: medium, pattern_ids: [heap] }
+- { slug: kth-largest-element-in-an-array, number: 215, difficulty: medium, pattern_ids: [heap] }
+- { slug: find-median-from-data-stream, number: 295, difficulty: hard, pattern_ids: [heap] }
+
+# graphs
+- { slug: number-of-islands, number: 200, difficulty: medium, pattern_ids: [graphs] }
+- { slug: clone-graph, number: 133, difficulty: medium, pattern_ids: [graphs] }
+- { slug: course-schedule, number: 207, difficulty: medium, pattern_ids: [graphs] }
+- { slug: pacific-atlantic-water-flow, number: 417, difficulty: medium, pattern_ids: [graphs] }
+- { slug: rotting-oranges, number: 994, difficulty: medium, pattern_ids: [graphs] }
+- { slug: word-ladder, number: 127, difficulty: hard, pattern_ids: [graphs] }
+
+# backtracking
+- { slug: subsets, number: 78, difficulty: medium, pattern_ids: [backtracking] }
+- { slug: combination-sum, number: 39, difficulty: medium, pattern_ids: [backtracking] }
+- { slug: permutations, number: 46, difficulty: medium, pattern_ids: [backtracking] }
+- { slug: word-search, number: 79, difficulty: medium, pattern_ids: [backtracking] }
+- { slug: n-queens, number: 51, difficulty: hard, pattern_ids: [backtracking] }
+
+# dynamic-programming
+- { slug: climbing-stairs, number: 70, difficulty: easy, pattern_ids: [dynamic-programming] }
+- { slug: house-robber, number: 198, difficulty: medium, pattern_ids: [dynamic-programming] }
+- { slug: coin-change, number: 322, difficulty: medium, pattern_ids: [dynamic-programming] }
+- { slug: longest-increasing-subsequence, number: 300, difficulty: medium, pattern_ids: [dynamic-programming] }
+- { slug: unique-paths, number: 62, difficulty: medium, pattern_ids: [dynamic-programming] }
+- { slug: word-break, number: 139, difficulty: medium, pattern_ids: [dynamic-programming] }
+- { slug: longest-common-subsequence, number: 1143, difficulty: medium, pattern_ids: [dynamic-programming] }
+- { slug: edit-distance, number: 72, difficulty: medium, pattern_ids: [dynamic-programming] }

@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import type { LcLogEvent } from '../engine/lc'
 import type { SessionLength } from '../engine/session'
 
 export interface ResponseRow {
@@ -22,9 +23,16 @@ export interface SessionRow {
   endedAt: number | null
 }
 
+/** One quick-log entry for a problem solved on leetcode.com. */
+export interface LcLogRow extends LcLogEvent {
+  id: number
+  minutes: number | null
+}
+
 export const db = new Dexie('spar') as Dexie & {
   responses: EntityTable<ResponseRow, 'id'>
   sessions: EntityTable<SessionRow, 'id'>
+  lcLogs: EntityTable<LcLogRow, 'id'>
 }
 
 db.version(1).stores({
@@ -35,6 +43,13 @@ db.version(1).stores({
 db.version(2).stores({
   responses: '++id, itemId, sessionId, ts',
   sessions: 'id, startedAt',
+})
+
+// v3: quick LeetCode log. Additive.
+db.version(3).stores({
+  responses: '++id, itemId, sessionId, ts',
+  sessions: 'id, startedAt',
+  lcLogs: '++id, slug, ts',
 })
 
 export function recordResponse(row: Omit<ResponseRow, 'id'>) {
@@ -55,4 +70,21 @@ export async function startSession(minutes: SessionLength, timed: boolean): Prom
 
 export function endSession(id: string) {
   return db.sessions.update(id, { endedAt: Date.now() })
+}
+
+export function addLcLog(row: Omit<LcLogRow, 'id' | 'ts'>) {
+  return db.lcLogs.add({ ...row, ts: Date.now() })
+}
+
+export function deleteLcLog(id: number) {
+  return db.lcLogs.delete(id)
+}
+
+/** Deletes every response, session and LeetCode log on this device. */
+export function clearAllProgress() {
+  return db.transaction('rw', db.responses, db.sessions, db.lcLogs, async () => {
+    await db.responses.clear()
+    await db.sessions.clear()
+    await db.lcLogs.clear()
+  })
 }

@@ -12,15 +12,23 @@ function loadRepoContent() {
   const items = readdirSync(itemsDir)
     .filter((f) => f.endsWith('.yaml'))
     .map((file) => ({ file, data: parse(readFileSync(join(itemsDir, file), 'utf8')) }))
-  return { patterns, items }
+  const catalog = parse(readFileSync(join(contentDir, 'lc_catalog.yaml'), 'utf8'))
+  return { patterns, items, catalog }
 }
 
 describe('repo content', () => {
   it('passes validation', () => {
-    const { patterns, items } = loadRepoContent()
-    const content = validateContent(patterns, items)
+    const { patterns, items, catalog } = loadRepoContent()
+    const content = validateContent(patterns, items, catalog)
     expect(content.patterns.length).toBeGreaterThanOrEqual(14)
     expect(content.items.length).toBeGreaterThanOrEqual(20)
+  })
+
+  it('has LeetCode references for every pattern', () => {
+    const { patterns, items, catalog } = loadRepoContent()
+    const content = validateContent(patterns, items, catalog)
+    const covered = new Set(content.lcCatalog.flatMap((p) => p.pattern_ids))
+    expect(content.patterns.filter((p) => !covered.has(p.id)).map((p) => p.id)).toEqual([])
   })
 
   it('covers every pattern with at least one item', () => {
@@ -61,6 +69,14 @@ describe('validateContent', () => {
 
   it('rejects a file name that does not match the id', () => {
     expect(() => validateContent(patterns, [{ file: 'pat-002.yaml', data: item }])).toThrow(/does not match/)
+  })
+
+  it('rejects catalog entries with duplicate slugs, problem text or unknown patterns', () => {
+    const lc = { slug: 'two-sum', number: 1, difficulty: 'easy', pattern_ids: ['a'] }
+    expect(validateContent(patterns, [], [lc]).lcCatalog).toHaveLength(1)
+    expect(() => validateContent(patterns, [], [lc, { ...lc, number: 2 }])).toThrow(/duplicate slug/)
+    expect(() => validateContent(patterns, [], [{ ...lc, statement: 'copied text' }])).toThrow()
+    expect(() => validateContent(patterns, [], [{ ...lc, pattern_ids: ['zzz'] }])).toThrow(/unknown pattern/)
   })
 
   it('rejects unknown prerequisites and unknown fields', () => {

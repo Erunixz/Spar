@@ -8,6 +8,7 @@ import {
   update,
   type Rating,
 } from './elo'
+import { bestOutcome, isSolved, LC_DIFFICULTY_PRIOR, LC_OUTCOME_SCORE, type LcLogEvent, type LcOutcome } from './lc'
 
 export interface ResponseEvent {
   itemId: string
@@ -24,11 +25,16 @@ export interface PatternSkill {
   se: number
   attempts: number
   correct: number
-  /** Distinct items answered correctly at least once, by difficulty. */
+  /** Distinct drill items answered correctly at least once, by difficulty. */
   solved: Record<Difficulty, number>
-  /** Accuracy over the last RECENT_WINDOW attempts, or null before any. */
+  /** Distinct LeetCode problems solved (unaided or with hints), by difficulty. */
+  lcSolved: Record<Difficulty, number>
+  /** Distinct LeetCode problems logged, whatever the outcome. */
+  lcLogged: number
+  /** Drill accuracy over the last RECENT_WINDOW attempts, or null before any. */
   recentAccuracy: number | null
   medianLatencyMs: number | null
+  /** Latest drill answer or LeetCode log. */
   lastPracticedAt: number | null
 }
 
@@ -47,14 +53,19 @@ function median(values: number[]): number | null {
   return sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2
 }
 
+const emptyCounts = (): Record<Difficulty, number> => ({ easy: 0, medium: 0, hard: 0 })
+
+type TimelineEvent = { kind: 'drill'; event: ResponseEvent } | { kind: 'lc'; event: LcLogEvent }
+
 /**
- * Rebuilds skill state by replaying responses in time order. Deterministic, so
- * the stored responses are the single source of truth.
+ * Rebuilds skill state by replaying drill responses and LeetCode logs in time
+ * order. Deterministic, so the stored rows are the single source of truth.
  */
 export function computeSkills(
   patternIds: string[],
   itemsById: Map<string, Item>,
   responses: ResponseEvent[],
+  lcLogs: LcLogEvent[] = [],
 ): SkillState {
   const ratings = new Map<string, Rating>(patternIds.map((id) => [id, initialRating()]))
   const itemDifficulty = new Map<string, number>()
@@ -64,9 +75,35 @@ export function computeSkills(
     patternIds.map((id) => [id, []]),
   )
   const solvedItems = new Map<string, Set<string>>(patternIds.map((id) => [id, new Set()]))
+  const lastTs = new Map<string, number>()
+  // Best outcome per problem per pattern: a problem counts once.
+  const lcBest = new Map<string, Map<string, { outcome: LcOutcome; difficulty: Difficulty }>>(
+    patternIds.map((id) => [id, new Map()]),
+  )
 
-  const ordered = [...responses].sort((a, b) => a.ts - b.ts)
-  for (const r of ordered) {
+  const timeline: TimelineEvent[] = [
+    ...responses.map((event) => ({ kind: 'drill' as const, event })),
+    ...lcLogs.map((event) => ({ kind: 'lc' as const, event })),
+  ].sort((a, b) => a.event.ts - b.event.ts)
+
+  for (const entry of timeline) {
+    if (entry.kind === 'lc') {
+      const log = entry.event
+      for (const pid of log.patternIds) {
+        const rating = ratings.get(pid)
+        if (!rating) continue
+        ratings.set(pid, update(rating, LC_DIFFICULTY_PRIOR[log.difficulty], LC_OUTCOME_SCORE[log.outcome]).rating)
+        lastTs.set(pid, log.ts)
+        const best = lcBest.get(pid)!
+        const prev = best.get(log.slug)
+        best.set(log.slug, {
+          outcome: prev ? bestOutcome(prev.outcome, log.outcome) : log.outcome,
+          difficulty: log.difficulty,
+        })
+      }
+      continue
+    }
+    const r = entry.event
     const item = itemsById.get(r.itemId)
     if (!item) continue // item removed from the bank; ignore its old responses
     const b = itemDifficulty.get(item.id)!
@@ -80,6 +117,7 @@ export function computeSkills(
       bSum += next.b
       touched += 1
       history.get(pid)!.push({ correct: r.correct, latencyMs: r.latencyMs, ts: r.ts })
+      lastTs.set(pid, r.ts)
       if (r.correct) solvedItems.get(pid)!.add(item.id)
     }
     if (touched > 0) itemDifficulty.set(item.id, bSum / touched)
@@ -90,8 +128,12 @@ export function computeSkills(
     const rating = ratings.get(pid)!
     const events = history.get(pid)!
     const recent = events.slice(-RECENT_WINDOW)
-    const solved: Record<Difficulty, number> = { easy: 0, medium: 0, hard: 0 }
+    const solved = emptyCounts()
     for (const itemId of solvedItems.get(pid)!) solved[itemsById.get(itemId)!.difficulty] += 1
+    const lcSolved = emptyCounts()
+    for (const { outcome, difficulty } of lcBest.get(pid)!.values()) {
+      if (isSolved(outcome)) lcSolved[difficulty] += 1
+    }
     patterns.set(pid, {
       patternId: pid,
       rating,
@@ -101,9 +143,11 @@ export function computeSkills(
       attempts: events.length,
       correct: events.filter((e) => e.correct).length,
       solved,
+      lcSolved,
+      lcLogged: lcBest.get(pid)!.size,
       recentAccuracy: recent.length ? recent.filter((e) => e.correct).length / recent.length : null,
       medianLatencyMs: median(events.map((e) => e.latencyMs)),
-      lastPracticedAt: events.length ? events[events.length - 1]!.ts : null,
+      lastPracticedAt: lastTs.get(pid) ?? null,
     })
   }
   return { patterns, itemDifficulty }

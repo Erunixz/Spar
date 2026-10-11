@@ -9,7 +9,8 @@ Find the interview patterns you're weakest at, then spend whatever time you have
 - **Time-boxed sessions:** pick 10, 30 or 60 minutes (or no limit). Each item is chosen for your weakest patterns and to fit the time left, and the session ends with a summary of how each pattern moved.
 - **Timed mode:** a per-item countdown, like an online assessment; running out counts as a miss.
 - **Pattern drills:** read an original problem description, name the pattern (or the Big-O), get instant feedback with the signal phrases that give it away. Keys `1`–`4` answer, `Enter` moves on.
-- **Skill graph:** 14 patterns in 4 layers, each with an Elo-based mastery estimate, a 95% band, and solved counts by difficulty.
+- **LeetCode log:** paste a link, number or slug and say how it went (on your own, with hints, or after viewing the solution). Each problem counts once, by its best outcome; only unaided solves move mastery fully.
+- **Skill graph:** 14 patterns in 4 layers, each with an Elo-based mastery estimate, a 95% band, and LeetCode solved counts by difficulty.
 - **Local-first:** answers are stored in IndexedDB on your device. No account, no server.
 
 ## How it works
@@ -21,7 +22,7 @@ Every answer updates a per-pattern ability `theta` and a per-item difficulty `b`
 ```
 apps/web/     Vite + React + TypeScript app
 apps/api/     Cloudflare Worker + D1 (Phase 5)
-content/      patterns.yaml and one YAML file per item, validated at build time
+content/      patterns.yaml, items/ (one YAML file per item) and lc_catalog.yaml, validated at build time
 ml/           training, evaluation, model cards (Phase 4)
 ```
 
@@ -39,7 +40,7 @@ Copy `.env.example` to `.env` if you need to override settings. Nothing is requi
 
 ## Adding content
 
-Add a file to `content/items/` named after its id (e.g. `pat-017.yaml`). The schema is in [apps/web/src/content/schema.ts](apps/web/src/content/schema.ts); `npm test` and `npm run build` both reject invalid items. All problem text is original. Spar links to LeetCode by slug and never copies its problems.
+Add a file to `content/items/` named after its id (e.g. `pat-017.yaml`). The schema is in [apps/web/src/content/schema.ts](apps/web/src/content/schema.ts); `npm test` and `npm run build` both reject invalid items. All problem text is original. `content/lc_catalog.yaml` holds only LeetCode slugs, numbers, difficulty labels and our own pattern tags; Spar links out to leetcode.com and never copies problem text.
 
 ## License
 

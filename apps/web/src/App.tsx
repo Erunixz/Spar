@@ -1,15 +1,17 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { content } from './content'
-import { db, endSession, startSession, type SessionRow } from './db'
+import { clearAllProgress, db, endSession, startSession, type SessionRow } from './db'
+import { bestOutcome, isSolved, type LcOutcome } from './engine/lc'
 import type { SessionLength } from './engine/session'
 import { computeSkills } from './engine/skill'
 import { DrillScreen } from './features/drills/DrillScreen'
+import { LcLogScreen } from './features/lclog/LcLogScreen'
 import { SessionSetup } from './features/sessions/SessionSetup'
 import { SessionSummary } from './features/sessions/SessionSummary'
 import { SkillGraph } from './features/skillmap/SkillGraph'
 
-type Tab = 'practice' | 'skills'
+type Tab = 'practice' | 'log' | 'skills'
 
 const patternIds = content.patterns.map((p) => p.id)
 
@@ -18,6 +20,8 @@ export default function App() {
   const [active, setActive] = useState<SessionRow | null>(null)
   const [finished, setFinished] = useState<SessionRow | null>(null)
   const responses = useLiveQuery(() => db.responses.orderBy('ts').toArray(), [])
+  const lcLogs = useLiveQuery(() => db.lcLogs.orderBy('ts').toArray(), [])
+  const loaded = responses !== undefined && lcLogs !== undefined
 
   // A session left open by a closed tab or reload can't be resumed; close it.
   useEffect(() => {
@@ -25,9 +29,14 @@ export default function App() {
   }, [])
 
   const skills = useMemo(
-    () => computeSkills(patternIds, content.itemsById, responses ?? []),
-    [responses],
+    () => computeSkills(patternIds, content.itemsById, responses ?? [], lcLogs ?? []),
+    [responses, lcLogs],
   )
+  const lcSolvedTotal = useMemo(() => {
+    const best = new Map<string, LcOutcome>()
+    for (const l of lcLogs ?? []) best.set(l.slug, best.has(l.slug) ? bestOutcome(best.get(l.slug)!, l.outcome) : l.outcome)
+    return [...best.values()].filter(isSolved).length
+  }, [lcLogs])
   const recentItemIds = useMemo(() => (responses ?? []).map((r) => r.itemId), [responses])
   const sessionStats = useMemo(() => {
     const mine = (responses ?? []).filter((r) => r.sessionId === active?.id)
@@ -47,17 +56,14 @@ export default function App() {
   }, [active])
 
   async function resetProgress() {
-    if (window.confirm('Delete every saved answer on this device? This cannot be undone.')) {
-      await db.transaction('rw', db.responses, db.sessions, async () => {
-        await db.responses.clear()
-        await db.sessions.clear()
-      })
+    if (window.confirm('Delete every saved answer and LeetCode log on this device? This cannot be undone.')) {
+      await clearAllProgress()
       setFinished(null)
     }
   }
 
   let practice
-  if (responses === undefined) practice = <p className="text-slate-500">Loading…</p>
+  if (!loaded) practice = <p className="text-slate-500">Loading…</p>
   else if (active)
     practice = (
       <DrillScreen
@@ -74,6 +80,7 @@ export default function App() {
       <SessionSummary
         sessionId={finished.id}
         responses={responses}
+        lcLogs={lcLogs}
         onAgain={() => setFinished(null)}
         onViewSkills={() => setTab('skills')}
       />
@@ -91,6 +98,7 @@ export default function App() {
             {(
               [
                 ['practice', active ? 'Session ●' : 'Practice'],
+                ['log', 'LeetCode log'],
                 ['skills', 'Skill graph'],
               ] as const
             ).map(([id, label]) => (
@@ -115,10 +123,12 @@ export default function App() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         {tab === 'practice' ? (
           practice
-        ) : responses === undefined ? (
+        ) : !loaded ? (
           <p className="text-slate-500">Loading…</p>
+        ) : tab === 'log' ? (
+          <LcLogScreen logs={lcLogs} />
         ) : (
-          <SkillGraph skills={skills} onReset={resetProgress} />
+          <SkillGraph skills={skills} lcSolvedTotal={lcSolvedTotal} onReset={resetProgress} />
         )}
       </main>
     </div>

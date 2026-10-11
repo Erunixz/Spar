@@ -1,4 +1,5 @@
 import type { Item } from '../content/schema'
+import type { LcLogEvent } from './lc'
 import { computeSkills, type ResponseEvent } from './skill'
 
 /** Session lengths offered in the builder, in minutes. null = no limit. */
@@ -54,12 +55,15 @@ export function summarizeSession(
   itemsById: Map<string, Item>,
   responses: SessionResponse[],
   sessionId: string,
+  lcLogs: LcLogEvent[] = [],
 ): SessionSummary {
   const mine = responses.filter((r) => r.sessionId === sessionId)
   const startedAt = mine.length ? Math.min(...mine.map((r) => r.ts)) : Infinity
   const earlier = responses.filter((r) => r.sessionId !== sessionId && r.ts < startedAt)
-  const before = computeSkills(patternIds, itemsById, earlier).patterns
-  const after = computeSkills(patternIds, itemsById, [...earlier, ...mine]).patterns
+  // LeetCode logs from before the session form part of both baselines.
+  const lcEarlier = lcLogs.filter((l) => l.ts < startedAt)
+  const before = computeSkills(patternIds, itemsById, earlier, lcEarlier).patterns
+  const after = computeSkills(patternIds, itemsById, [...earlier, ...mine], lcEarlier).patterns
 
   const counts = new Map<string, { attempts: number; correct: number }>()
   for (const r of mine) {
