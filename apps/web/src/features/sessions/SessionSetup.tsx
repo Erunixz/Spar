@@ -1,15 +1,22 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { content } from '../../content'
-import { practiceNeed } from '../../engine/select'
+import type { LcLogRow } from '../../db'
+import { practiceNeed, recommendLeetCode } from '../../engine/recommend'
 import { SESSION_LENGTHS, type SessionLength } from '../../engine/session'
 import type { SkillState } from '../../engine/skill'
+import { LC_TASK_MIN_SESSION } from '../drills/DrillScreen'
+import { LcRecCard } from '../recommend/LcRecCard'
 
 interface Props {
   skills: SkillState
+  lcLogs: LcLogRow[]
+  /** Fixed per page load so recommendations don't reshuffle on every render. */
+  now: number
   onStart: (minutes: SessionLength, timed: boolean) => void
+  onLogProblem: (slug: string) => void
 }
 
-export function SessionSetup({ skills, onStart }: Props) {
+export function SessionSetup({ skills, lcLogs, now, onStart, onLogProblem }: Props) {
   const [minutes, setMinutes] = useState<SessionLength>(10)
   const [timed, setTimed] = useState(false)
 
@@ -18,6 +25,14 @@ export function SessionSetup({ skills, onStart }: Props) {
     .sort((a, b) => practiceNeed(b) - practiceNeed(a))
     .slice(0, 3)
     .map((s) => content.patternsById.get(s.patternId)?.name ?? s.patternId)
+
+  const recs = useMemo(
+    () =>
+      recommendLeetCode(content.lcCatalog, lcLogs, { skills, patternsById: content.patternsById, now }, {
+        random: () => 0,
+      }),
+    [skills, lcLogs, now],
+  )
 
   return (
     <div className="mx-auto max-w-xl space-y-8">
@@ -60,6 +75,9 @@ export function SessionSetup({ skills, onStart }: Props) {
           <span className="block text-sm text-slate-500 dark:text-slate-400">
             Each item gets a countdown, like an online assessment. Running out counts as a miss.
           </span>
+          <span className="mt-1 block text-xs text-slate-400">
+            Sessions of {LC_TASK_MIN_SESSION}+ minutes include one recommended LeetCode problem.
+          </span>
         </span>
       </label>
 
@@ -73,6 +91,31 @@ export function SessionSetup({ skills, onStart }: Props) {
           Start session
         </button>
       </div>
+
+      {recs.length > 0 && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Recommended on LeetCode
+          </h3>
+          <div className="grid gap-3">
+            {recs.map((rec) => (
+              <LcRecCard
+                key={rec.problem.slug}
+                rec={rec}
+                action={
+                  <button
+                    type="button"
+                    onClick={() => onLogProblem(rec.problem.slug)}
+                    className="text-sm font-medium text-slate-600 underline hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  >
+                    Done it? Log the result
+                  </button>
+                }
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

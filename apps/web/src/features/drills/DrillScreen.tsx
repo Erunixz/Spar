@@ -1,20 +1,30 @@
 import { useCallback, useEffect, useState } from 'react'
 import { content, type Item } from '../../content'
-import { recordResponse, type SessionRow } from '../../db'
+import { recordResponse, type LcLogRow, type SessionRow } from '../../db'
+import { recommendLeetCode, type LcRecommendation, type RecContext } from '../../engine/recommend'
 import { pickNextItem, type Pick } from '../../engine/select'
 import { isSessionOver, remainingSeconds } from '../../engine/session'
 import type { SkillState } from '../../engine/skill'
+import { LcTaskCard } from '../recommend/LcTaskCard'
 import { formatClock, useNow } from '../sessions/useNow'
 import { Prompt } from './Prompt'
 
 interface Props {
   skills: SkillState
   recentItemIds: string[]
+  lcLogs: LcLogRow[]
   session: SessionRow
   /** Answers so far in this session, from the response log. */
   sessionStats: { answered: number; correct: number }
   onEnd: () => void
 }
+
+/** Sessions this long (or unlimited) include one LeetCode problem... */
+export const LC_TASK_MIN_SESSION = 30
+/** ...after this many drills as a warm-up. */
+export const LC_TASK_AFTER_DRILLS = 3
+/** Minutes kept free after the LeetCode problem for the end of the session. */
+const LC_TASK_SLACK_MIN = 2
 
 const patternName = (id: string) => content.patternsById.get(id)?.name ?? id
 
@@ -22,15 +32,25 @@ function choiceLabel(item: Item, choice: string) {
   return item.type === 'pattern' ? patternName(choice) : choice
 }
 
-export function DrillScreen({ skills, recentItemIds, session, sessionStats, onEnd }: Props) {
-  const [pick, setPick] = useState<Pick | null>(() =>
-    pickNextItem(content.items, skills, recentItemIds, patternName, {
-      maxSeconds: remainingSeconds(session.minutesPlanned, session.startedAt, Date.now()),
-    }),
+export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionStats, onEnd }: Props) {
+  const ctxAt = useCallback(
+    (time: number): RecContext => ({ skills, patternsById: content.patternsById, now: time }),
+    [skills],
   )
+  const [pick, setPick] = useState<Pick | null>(() => {
+    const time = Date.now()
+    return pickNextItem(content.items, ctxAt(time), recentItemIds, patternName, {
+      maxSeconds: remainingSeconds(session.minutesPlanned, session.startedAt, time),
+    })
+  })
   const [shownAt, setShownAt] = useState(() => Date.now())
   const [chosen, setChosen] = useState<string | null>(null)
   const [timedOut, setTimedOut] = useState(false)
+  // Counted here too because sessionStats can lag the answer just saved.
+  const [answeredHere, setAnsweredHere] = useState(0)
+  const [lcTask, setLcTask] = useState<{ rec: LcRecommendation; shownAt: number } | null>(null)
+  // One LeetCode problem per session, even if this screen remounts.
+  const [lcOffered, setLcOffered] = useState(() => lcLogs.some((l) => l.sessionId === session.id))
   const now = useNow(250)
 
   const answer = useCallback(
@@ -39,6 +59,7 @@ export function DrillScreen({ skills, recentItemIds, session, sessionStats, onEn
       const correct = !outOfTime && choice === pick.item.answer
       setChosen(choice)
       setTimedOut(outOfTime)
+      setAnsweredHere((n) => n + 1)
       void recordResponse({
         itemId: pick.item.id,
         choice,
@@ -53,29 +74,47 @@ export function DrillScreen({ skills, recentItemIds, session, sessionStats, onEn
   )
 
   const next = useCallback(() => {
-    const remaining = remainingSeconds(session.minutesPlanned, session.startedAt, Date.now())
+    const time = Date.now()
+    const remaining = remainingSeconds(session.minutesPlanned, session.startedAt, time)
+    const ctx = ctxAt(time)
+
+    const longSession = session.minutesPlanned === null || session.minutesPlanned >= LC_TASK_MIN_SESSION
+    const answered = Math.max(sessionStats.answered, answeredHere)
+    if (longSession && !lcOffered && answered >= LC_TASK_AFTER_DRILLS) {
+      setLcOffered(true)
+      const [rec] = recommendLeetCode(content.lcCatalog, lcLogs, ctx, {
+        count: 1,
+        maxMinutes: remaining / 60 - LC_TASK_SLACK_MIN,
+      })
+      if (rec) {
+        setLcTask({ rec, shownAt: time })
+        return
+      }
+    }
+
     if (isSessionOver(content.items, remaining)) return onEnd()
     // recentItemIds may not include the item just answered yet (live query lag).
     const recent = pick ? [...recentItemIds.filter((id) => id !== pick.item.id), pick.item.id] : recentItemIds
-    const nextPick = pickNextItem(content.items, skills, recent, patternName, { maxSeconds: remaining })
+    const nextPick = pickNextItem(content.items, ctx, recent, patternName, { maxSeconds: remaining })
     if (!nextPick) return onEnd()
+    setLcTask(null)
     setPick(nextPick)
     setChosen(null)
     setTimedOut(false)
     setShownAt(Date.now())
-  }, [pick, recentItemIds, skills, session, onEnd])
+  }, [pick, recentItemIds, lcLogs, lcOffered, sessionStats.answered, answeredHere, session, ctxAt, onEnd])
 
   // Timed mode: an unanswered item times out after its est_seconds.
   useEffect(() => {
-    if (!session.timed || !pick || chosen !== null) return
+    if (!session.timed || !pick || chosen !== null || lcTask) return
     const msLeft = pick.item.est_seconds * 1000 - (Date.now() - shownAt)
     const id = setTimeout(() => answer('', true), Math.max(0, msLeft))
     return () => clearTimeout(id)
-  }, [session.timed, pick, chosen, shownAt, answer])
+  }, [session.timed, pick, chosen, shownAt, answer, lcTask])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!pick || e.metaKey || e.ctrlKey || e.altKey) return
+      if (!pick || lcTask || e.metaKey || e.ctrlKey || e.altKey) return
       if (chosen === null) {
         const idx = Number(e.key) - 1
         const choice = pick.item.choices[idx]
@@ -87,7 +126,35 @@ export function DrillScreen({ skills, recentItemIds, session, sessionStats, onEn
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [pick, chosen, answer, next])
+  }, [pick, chosen, answer, next, lcTask])
+
+  const sessionLeft = remainingSeconds(session.minutesPlanned, session.startedAt, now)
+  const sessionBar = (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-100 px-4 py-2 text-sm dark:bg-slate-900">
+      <span className="tabular-nums">
+        {session.minutesPlanned === null
+          ? `${formatClock((now - session.startedAt) / 1000)} elapsed`
+          : `${formatClock(sessionLeft)} left`}{' '}
+        · {sessionStats.correct}/{sessionStats.answered} right
+      </span>
+      <button
+        type="button"
+        onClick={onEnd}
+        className="rounded-md px-2 py-1 font-medium text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+      >
+        End session
+      </button>
+    </div>
+  )
+
+  if (lcTask) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        {sessionBar}
+        <LcTaskCard rec={lcTask.rec} shownAt={lcTask.shownAt} sessionId={session.id} onDone={next} />
+      </div>
+    )
+  }
 
   if (!pick) {
     return (
@@ -103,26 +170,11 @@ export function DrillScreen({ skills, recentItemIds, session, sessionStats, onEn
   const { item, reason } = pick
   const isCorrect = !timedOut && chosen === item.answer
   const chosenPattern = chosen && item.type === 'pattern' && !isCorrect ? content.patternsById.get(chosen) : null
-  const sessionLeft = remainingSeconds(session.minutesPlanned, session.startedAt, now)
   const itemLeft = item.est_seconds - (now - shownAt) / 1000
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-100 px-4 py-2 text-sm dark:bg-slate-900">
-        <span className="tabular-nums">
-          {session.minutesPlanned === null
-            ? `${formatClock((now - session.startedAt) / 1000)} elapsed`
-            : `${formatClock(sessionLeft)} left`}{' '}
-          · {sessionStats.correct}/{sessionStats.answered} right
-        </span>
-        <button
-          type="button"
-          onClick={onEnd}
-          className="rounded-md px-2 py-1 font-medium text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-        >
-          End session
-        </button>
-      </div>
+      {sessionBar}
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500 dark:text-slate-400">
         <span>

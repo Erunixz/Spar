@@ -1,20 +1,29 @@
 import { content } from '../../content'
 import type { LcLogRow, ResponseRow } from '../../db'
+import { recommendLeetCode } from '../../engine/recommend'
 import { summarizeSession } from '../../engine/session'
+import type { SkillState } from '../../engine/skill'
+import { LcRecCard } from '../recommend/LcRecCard'
 import { formatClock } from './useNow'
 
 interface Props {
   sessionId: string
   responses: ResponseRow[]
   lcLogs: LcLogRow[]
+  skills: SkillState
+  now: number
   onAgain: () => void
   onViewSkills: () => void
 }
 
 const patternIds = content.patterns.map((p) => p.id)
 
-export function SessionSummary({ sessionId, responses, lcLogs, onAgain, onViewSkills }: Props) {
+export function SessionSummary({ sessionId, responses, lcLogs, skills, now, onAgain, onViewSkills }: Props) {
   const s = summarizeSession(patternIds, content.itemsById, responses, sessionId, lcLogs)
+  const [nextUp] = recommendLeetCode(content.lcCatalog, lcLogs, { skills, patternsById: content.patternsById, now }, {
+    count: 1,
+    random: () => 0,
+  })
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -71,6 +80,15 @@ export function SessionSummary({ sessionId, responses, lcLogs, onAgain, onViewSk
             </table>
           </div>
         </>
+      )}
+
+      {nextUp && (
+        <section className="space-y-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Next up on LeetCode
+          </h3>
+          <LcRecCard rec={nextUp} />
+        </section>
       )}
 
       <div className="flex gap-3">

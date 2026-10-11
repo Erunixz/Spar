@@ -23,8 +23,8 @@ const OUTCOME_STYLE: Record<LcOutcome, string> = {
 
 const dateFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 
-export function LcLogScreen({ logs }: { logs: LcLogRow[] }) {
-  const [input, setInput] = useState('')
+export function LcLogScreen({ logs, initialInput = '' }: { logs: LcLogRow[]; initialInput?: string }) {
+  const [input, setInput] = useState(initialInput)
   const [outcome, setOutcome] = useState<LcOutcome | null>(null)
   const [minutes, setMinutes] = useState('')
   // Only used for problems outside the catalog.

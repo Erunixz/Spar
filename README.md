@@ -9,6 +9,7 @@ Find the interview patterns you're weakest at, then spend whatever time you have
 - **Time-boxed sessions:** pick 10, 30 or 60 minutes (or no limit). Each item is chosen for your weakest patterns and to fit the time left, and the session ends with a summary of how each pattern moved.
 - **Timed mode:** a per-item countdown, like an online assessment; running out counts as a miss.
 - **Pattern drills:** read an original problem description, name the pattern (or the Big-O), get instant feedback with the signal phrases that give it away. Keys `1`–`4` answer, `Enter` moves on.
+- **Recommendations:** every pick says why it was chosen ("Sliding Window: low mastery, not practiced in over a week"). One set of rules ranks both drills and LeetCode problems: weakness and uncertainty, a 60 to 75% predicted success band, a boost for patterns unpracticed for a week, a penalty while a prerequisite is weak, time fit, and freshness (no LeetCode repeat within a week; unaided solves return only as reviews). Sessions of 30+ minutes include one recommended LeetCode problem.
 - **LeetCode log:** paste a link, number or slug and say how it went (on your own, with hints, or after viewing the solution). Each problem counts once, by its best outcome; only unaided solves move mastery fully.
 - **Skill graph:** 14 patterns in 4 layers, each with an Elo-based mastery estimate, a 95% band, and LeetCode solved counts by difficulty.
 - **Local-first:** answers are stored in IndexedDB on your device. No account, no server.

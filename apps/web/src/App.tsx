@@ -19,6 +19,10 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('practice')
   const [active, setActive] = useState<SessionRow | null>(null)
   const [finished, setFinished] = useState<SessionRow | null>(null)
+  // Prefill for the LeetCode log when coming from a recommendation.
+  const [logPrefill, setLogPrefill] = useState<{ slug: string; key: number } | null>(null)
+  // Recommendations use the page-load time so they stay stable while you read them.
+  const [openedAt] = useState(() => Date.now())
   const responses = useLiveQuery(() => db.responses.orderBy('ts').toArray(), [])
   const lcLogs = useLiveQuery(() => db.lcLogs.orderBy('ts').toArray(), [])
   const loaded = responses !== undefined && lcLogs !== undefined
@@ -70,6 +74,7 @@ export default function App() {
         key={active.id}
         skills={skills}
         recentItemIds={recentItemIds}
+        lcLogs={lcLogs}
         session={active}
         sessionStats={sessionStats}
         onEnd={finish}
@@ -81,11 +86,25 @@ export default function App() {
         sessionId={finished.id}
         responses={responses}
         lcLogs={lcLogs}
+        skills={skills}
+        now={openedAt}
         onAgain={() => setFinished(null)}
         onViewSkills={() => setTab('skills')}
       />
     )
-  else practice = <SessionSetup skills={skills} onStart={begin} />
+  else
+    practice = (
+      <SessionSetup
+        skills={skills}
+        lcLogs={lcLogs}
+        now={openedAt}
+        onStart={begin}
+        onLogProblem={(slug) => {
+          setLogPrefill({ slug, key: Date.now() })
+          setTab('log')
+        }}
+      />
+    )
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -126,7 +145,7 @@ export default function App() {
         ) : !loaded ? (
           <p className="text-slate-500">Loading…</p>
         ) : tab === 'log' ? (
-          <LcLogScreen logs={lcLogs} />
+          <LcLogScreen key={logPrefill?.key} logs={lcLogs} initialInput={logPrefill?.slug} />
         ) : (
           <SkillGraph skills={skills} lcSolvedTotal={lcSolvedTotal} onReset={resetProgress} />
         )}

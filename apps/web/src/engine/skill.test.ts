@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Item } from '../content/schema'
-import { computeSkills, type ResponseEvent } from './skill'
+import { computeSkills, type ResponseEvent, type SkillState } from './skill'
 import { pickNextItem } from './select'
 
 const mkItem = (id: string, patternIds: string[], difficulty: Item['difficulty'] = 'medium'): Item => ({
@@ -76,6 +76,7 @@ describe('computeSkills', () => {
 
 describe('pickNextItem', () => {
   const name = (id: string) => id.toUpperCase()
+  const ctx = (skills: SkillState) => ({ skills, patternsById: new Map(), now: 0 })
 
   it('favours the weaker pattern', () => {
     const skills = computeSkills(patternIds, itemsById, [
@@ -83,27 +84,27 @@ describe('pickNextItem', () => {
       resp('pat-002', true, 2),
       resp('pat-001', true, 3),
     ])
-    const pick = pickNextItem(items, skills, [], name, { random: () => 0 })
+    const pick = pickNextItem(items, ctx(skills), [], name, { random: () => 0 })
     expect(pick?.item.pattern_ids).toEqual(['b'])
     expect(pick?.reason).toBe('B: not practiced yet')
   })
 
   it('does not repeat a recent item while others exist', () => {
     const skills = computeSkills(patternIds, itemsById, [])
-    const pick = pickNextItem([items[0]!, items[2]!], skills, ['pat-003'], name, { random: () => 0 })
+    const pick = pickNextItem([items[0]!, items[2]!], ctx(skills), ['pat-003'], name, { random: () => 0 })
     expect(pick?.item.id).toBe('pat-001')
   })
 
   it('only picks items that fit the time left', () => {
     const skills = computeSkills(patternIds, itemsById, [])
     const short = { ...items[0]!, id: 'pat-009', est_seconds: 20 }
-    const pick = pickNextItem([...items, short], skills, [], name, { maxSeconds: 25 })
+    const pick = pickNextItem([...items, short], ctx(skills), [], name, { maxSeconds: 25 })
     expect(pick?.item.id).toBe('pat-009')
-    expect(pickNextItem(items, skills, [], name, { maxSeconds: 5 })).toBeNull()
+    expect(pickNextItem(items, ctx(skills), [], name, { maxSeconds: 5 })).toBeNull()
   })
 
   it('still returns an item when the bank has only one', () => {
     const skills = computeSkills(patternIds, itemsById, [])
-    expect(pickNextItem([items[0]!], skills, ['pat-001'], name)?.item.id).toBe('pat-001')
+    expect(pickNextItem([items[0]!], ctx(skills), ['pat-001'], name)?.item.id).toBe('pat-001')
   })
 })

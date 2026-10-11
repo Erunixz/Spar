@@ -27,6 +27,8 @@ export interface SessionRow {
 export interface LcLogRow extends LcLogEvent {
   id: number
   minutes: number | null
+  /** Set when the problem was done inside a practice session. */
+  sessionId?: string
 }
 
 export const db = new Dexie('spar') as Dexie & {
