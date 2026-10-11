@@ -83,15 +83,23 @@ describe('pickNextItem', () => {
       resp('pat-002', true, 2),
       resp('pat-001', true, 3),
     ])
-    const pick = pickNextItem(items, skills, [], name, () => 0)
+    const pick = pickNextItem(items, skills, [], name, { random: () => 0 })
     expect(pick?.item.pattern_ids).toEqual(['b'])
     expect(pick?.reason).toBe('B: not practiced yet')
   })
 
   it('does not repeat a recent item while others exist', () => {
     const skills = computeSkills(patternIds, itemsById, [])
-    const pick = pickNextItem([items[0]!, items[2]!], skills, ['pat-003'], name, () => 0)
+    const pick = pickNextItem([items[0]!, items[2]!], skills, ['pat-003'], name, { random: () => 0 })
     expect(pick?.item.id).toBe('pat-001')
+  })
+
+  it('only picks items that fit the time left', () => {
+    const skills = computeSkills(patternIds, itemsById, [])
+    const short = { ...items[0]!, id: 'pat-009', est_seconds: 20 }
+    const pick = pickNextItem([...items, short], skills, [], name, { maxSeconds: 25 })
+    expect(pick?.item.id).toBe('pat-009')
+    expect(pickNextItem(items, skills, [], name, { maxSeconds: 5 })).toBeNull()
   })
 
   it('still returns an item when the bank has only one', () => {

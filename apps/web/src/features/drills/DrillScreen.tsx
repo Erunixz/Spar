@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { content, type Item } from '../../content'
-import { recordResponse } from '../../db'
+import { recordResponse, type SessionRow } from '../../db'
 import { pickNextItem, type Pick } from '../../engine/select'
+import { isSessionOver, remainingSeconds } from '../../engine/session'
 import type { SkillState } from '../../engine/skill'
+import { formatClock, useNow } from '../sessions/useNow'
 import { Prompt } from './Prompt'
 
 interface Props {
   skills: SkillState
   recentItemIds: string[]
-  sessionId: string
+  session: SessionRow
+  /** Answers so far in this session, from the response log. */
+  sessionStats: { answered: number; correct: number }
+  onEnd: () => void
 }
 
 const patternName = (id: string) => content.patternsById.get(id)?.name ?? id
@@ -17,39 +22,56 @@ function choiceLabel(item: Item, choice: string) {
   return item.type === 'pattern' ? patternName(choice) : choice
 }
 
-export function DrillScreen({ skills, recentItemIds, sessionId }: Props) {
+export function DrillScreen({ skills, recentItemIds, session, sessionStats, onEnd }: Props) {
   const [pick, setPick] = useState<Pick | null>(() =>
-    pickNextItem(content.items, skills, recentItemIds, patternName),
+    pickNextItem(content.items, skills, recentItemIds, patternName, {
+      maxSeconds: remainingSeconds(session.minutesPlanned, session.startedAt, Date.now()),
+    }),
   )
   const [shownAt, setShownAt] = useState(() => Date.now())
   const [chosen, setChosen] = useState<string | null>(null)
-  const [stats, setStats] = useState({ answered: 0, correct: 0 })
+  const [timedOut, setTimedOut] = useState(false)
+  const now = useNow(250)
 
   const answer = useCallback(
-    (choice: string) => {
+    (choice: string, outOfTime = false) => {
       if (!pick || chosen !== null) return
-      const correct = choice === pick.item.answer
+      const correct = !outOfTime && choice === pick.item.answer
       setChosen(choice)
-      setStats((s) => ({ answered: s.answered + 1, correct: s.correct + (correct ? 1 : 0) }))
+      setTimedOut(outOfTime)
       void recordResponse({
         itemId: pick.item.id,
         choice,
         correct,
         latencyMs: Date.now() - shownAt,
-        sessionId,
+        sessionId: session.id,
         ts: Date.now(),
+        timedOut: outOfTime,
       })
     },
-    [pick, chosen, shownAt, sessionId],
+    [pick, chosen, shownAt, session.id],
   )
 
   const next = useCallback(() => {
+    const remaining = remainingSeconds(session.minutesPlanned, session.startedAt, Date.now())
+    if (isSessionOver(content.items, remaining)) return onEnd()
     // recentItemIds may not include the item just answered yet (live query lag).
     const recent = pick ? [...recentItemIds.filter((id) => id !== pick.item.id), pick.item.id] : recentItemIds
-    setPick(pickNextItem(content.items, skills, recent, patternName))
+    const nextPick = pickNextItem(content.items, skills, recent, patternName, { maxSeconds: remaining })
+    if (!nextPick) return onEnd()
+    setPick(nextPick)
     setChosen(null)
+    setTimedOut(false)
     setShownAt(Date.now())
-  }, [pick, recentItemIds, skills])
+  }, [pick, recentItemIds, skills, session, onEnd])
+
+  // Timed mode: an unanswered item times out after its est_seconds.
+  useEffect(() => {
+    if (!session.timed || !pick || chosen !== null) return
+    const msLeft = pick.item.est_seconds * 1000 - (Date.now() - shownAt)
+    const id = setTimeout(() => answer('', true), Math.max(0, msLeft))
+    return () => clearTimeout(id)
+  }, [session.timed, pick, chosen, shownAt, answer])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -67,23 +89,61 @@ export function DrillScreen({ skills, recentItemIds, sessionId }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [pick, chosen, answer, next])
 
-  if (!pick) return <p className="text-slate-500">No items in the bank yet.</p>
+  if (!pick) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-4">
+        <p className="text-slate-500">No item fits the time left in this session.</p>
+        <button type="button" onClick={onEnd} className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white">
+          See summary
+        </button>
+      </div>
+    )
+  }
 
   const { item, reason } = pick
-  const isCorrect = chosen === item.answer
+  const isCorrect = !timedOut && chosen === item.answer
   const chosenPattern = chosen && item.type === 'pattern' && !isCorrect ? content.patternsById.get(chosen) : null
+  const sessionLeft = remainingSeconds(session.minutesPlanned, session.startedAt, now)
+  const itemLeft = item.est_seconds - (now - shownAt) / 1000
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-100 px-4 py-2 text-sm dark:bg-slate-900">
+        <span className="tabular-nums">
+          {session.minutesPlanned === null
+            ? `${formatClock((now - session.startedAt) / 1000)} elapsed`
+            : `${formatClock(sessionLeft)} left`}{' '}
+          · {sessionStats.correct}/{sessionStats.answered} right
+        </span>
+        <button
+          type="button"
+          onClick={onEnd}
+          className="rounded-md px-2 py-1 font-medium text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+        >
+          End session
+        </button>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500 dark:text-slate-400">
         <span>
           {item.type === 'pattern' ? 'Which pattern fits?' : 'What is the time complexity?'} ·{' '}
           <span className="capitalize">{item.difficulty}</span> · ~{item.est_seconds}s
         </span>
-        <span>
-          This session: {stats.correct}/{stats.answered}
-        </span>
+        {session.timed && chosen === null && (
+          <span className={`font-semibold tabular-nums ${itemLeft <= 10 ? 'text-rose-600 dark:text-rose-400' : ''}`}>
+            {formatClock(itemLeft)}
+          </span>
+        )}
       </div>
+
+      {session.timed && (
+        <div className="h-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800" aria-hidden>
+          <div
+            className={`h-full transition-[width] duration-200 ease-linear ${itemLeft <= 10 ? 'bg-rose-500' : 'bg-indigo-500'}`}
+            style={{ width: `${chosen === null ? Math.max(0, (itemLeft / item.est_seconds) * 100) : 0}%` }}
+          />
+        </div>
+      )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <Prompt text={item.prompt} />
@@ -127,7 +187,11 @@ export function DrillScreen({ skills, recentItemIds, sessionId }: Props) {
           }`}
         >
           <p className="font-semibold">
-            {isCorrect ? 'Correct.' : `Not quite: it's ${choiceLabel(item, item.answer)}.`}
+            {isCorrect
+              ? 'Correct.'
+              : timedOut
+                ? `Out of time: it's ${choiceLabel(item, item.answer)}.`
+                : `Not quite: it's ${choiceLabel(item, item.answer)}.`}
           </p>
           <p className="leading-relaxed">{item.explanation.trim()}</p>
           {chosenPattern && (

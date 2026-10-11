@@ -6,6 +6,8 @@ Find the interview patterns you're weakest at, then spend whatever time you have
 
 ## What works today
 
+- **Time-boxed sessions:** pick 10, 30 or 60 minutes (or no limit). Each item is chosen for your weakest patterns and to fit the time left, and the session ends with a summary of how each pattern moved.
+- **Timed mode:** a per-item countdown, like an online assessment; running out counts as a miss.
 - **Pattern drills:** read an original problem description, name the pattern (or the Big-O), get instant feedback with the signal phrases that give it away. Keys `1`–`4` answer, `Enter` moves on.
 - **Skill graph:** 14 patterns in 4 layers, each with an Elo-based mastery estimate, a 95% band, and solved counts by difficulty.
 - **Local-first:** answers are stored in IndexedDB on your device. No account, no server.

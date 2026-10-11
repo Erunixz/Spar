@@ -1,32 +1,44 @@
 import type { Item } from '../content/schema'
-import type { SkillState } from './skill'
+import type { PatternSkill, SkillState } from './skill'
 
 export interface Pick {
   item: Item
   reason: string
 }
 
+/** How much a pattern needs practice: weakness (0..1) plus uncertainty (se shrinks from 1.5 toward ~0.3). */
+export function practiceNeed(skill: PatternSkill): number {
+  return (100 - skill.mastery) / 100 + skill.se / 2
+}
+
 /** Don't repeat any of the last few items while others are available. */
 export const RECENT_EXCLUDE = 8
 
+export interface PickOptions {
+  random?: () => number
+  /** Time fit: only items expected to take at most this many seconds. */
+  maxSeconds?: number
+}
+
 /**
  * Day-one selection rule: favour items on weak or uncertain patterns, skip
- * items seen in the last few answers, add a little noise to break ties.
- * The full recommender (difficulty fit, due reviews, time fit) replaces this
- * in the session builder.
+ * items seen in the last few answers or too long for the time left, add a
+ * little noise to break ties. The full recommender (difficulty fit, due
+ * reviews) replaces this later in Phase 2.
  */
 export function pickNextItem(
   items: Item[],
   skills: SkillState,
   recentItemIds: string[],
   patternName: (id: string) => string,
-  random: () => number = Math.random,
+  { random = Math.random, maxSeconds = Infinity }: PickOptions = {},
 ): Pick | null {
-  if (items.length === 0) return null
-  const excludeCount = Math.min(RECENT_EXCLUDE, items.length - 1)
+  const fitting = items.filter((i) => i.est_seconds <= maxSeconds)
+  if (fitting.length === 0) return null
+  const excludeCount = Math.min(RECENT_EXCLUDE, fitting.length - 1)
   // slice(-0) would return everything, so guard the zero case explicitly.
   const excluded = new Set(excludeCount > 0 ? recentItemIds.slice(-excludeCount) : [])
-  const pool = items.filter((i) => !excluded.has(i.id))
+  const pool = fitting.filter((i) => !excluded.has(i.id))
 
   let best: { item: Item; score: number; weakest: string } | null = null
   for (const item of pool) {
@@ -35,8 +47,7 @@ export function pickNextItem(
     for (const pid of item.pattern_ids) {
       const s = skills.patterns.get(pid)
       if (!s) continue
-      // Weakness (0..1) plus uncertainty (se shrinks from 1.5 toward ~0.3).
-      const score = (100 - s.mastery) / 100 + s.se / 2
+      const score = practiceNeed(s)
       if (score > need) {
         need = score
         weakest = pid

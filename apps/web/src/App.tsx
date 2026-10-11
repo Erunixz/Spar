@@ -1,31 +1,84 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { content } from './content'
-import { db } from './db'
+import { db, endSession, startSession, type SessionRow } from './db'
+import type { SessionLength } from './engine/session'
 import { computeSkills } from './engine/skill'
 import { DrillScreen } from './features/drills/DrillScreen'
+import { SessionSetup } from './features/sessions/SessionSetup'
+import { SessionSummary } from './features/sessions/SessionSummary'
 import { SkillGraph } from './features/skillmap/SkillGraph'
 
-type Tab = 'drill' | 'skills'
+type Tab = 'practice' | 'skills'
 
 const patternIds = content.patterns.map((p) => p.id)
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('drill')
-  const [sessionId] = useState(() => crypto.randomUUID())
+  const [tab, setTab] = useState<Tab>('practice')
+  const [active, setActive] = useState<SessionRow | null>(null)
+  const [finished, setFinished] = useState<SessionRow | null>(null)
   const responses = useLiveQuery(() => db.responses.orderBy('ts').toArray(), [])
+
+  // A session left open by a closed tab or reload can't be resumed; close it.
+  useEffect(() => {
+    void db.sessions.filter((s) => s.endedAt === null).modify({ endedAt: Date.now() })
+  }, [])
 
   const skills = useMemo(
     () => computeSkills(patternIds, content.itemsById, responses ?? []),
     [responses],
   )
   const recentItemIds = useMemo(() => (responses ?? []).map((r) => r.itemId), [responses])
+  const sessionStats = useMemo(() => {
+    const mine = (responses ?? []).filter((r) => r.sessionId === active?.id)
+    return { answered: mine.length, correct: mine.filter((r) => r.correct).length }
+  }, [responses, active])
+
+  async function begin(minutes: SessionLength, timed: boolean) {
+    setFinished(null)
+    setActive(await startSession(minutes, timed))
+  }
+
+  const finish = useCallback(() => {
+    if (!active) return
+    void endSession(active.id)
+    setFinished(active)
+    setActive(null)
+  }, [active])
 
   async function resetProgress() {
     if (window.confirm('Delete every saved answer on this device? This cannot be undone.')) {
-      await db.responses.clear()
+      await db.transaction('rw', db.responses, db.sessions, async () => {
+        await db.responses.clear()
+        await db.sessions.clear()
+      })
+      setFinished(null)
     }
   }
+
+  let practice
+  if (responses === undefined) practice = <p className="text-slate-500">Loading…</p>
+  else if (active)
+    practice = (
+      <DrillScreen
+        key={active.id}
+        skills={skills}
+        recentItemIds={recentItemIds}
+        session={active}
+        sessionStats={sessionStats}
+        onEnd={finish}
+      />
+    )
+  else if (finished)
+    practice = (
+      <SessionSummary
+        sessionId={finished.id}
+        responses={responses}
+        onAgain={() => setFinished(null)}
+        onViewSkills={() => setTab('skills')}
+      />
+    )
+  else practice = <SessionSetup skills={skills} onStart={begin} />
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -37,7 +90,7 @@ export default function App() {
           <nav className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
             {(
               [
-                ['drill', 'Drill'],
+                ['practice', active ? 'Session ●' : 'Practice'],
                 ['skills', 'Skill graph'],
               ] as const
             ).map(([id, label]) => (
@@ -60,10 +113,10 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
-        {responses === undefined ? (
+        {tab === 'practice' ? (
+          practice
+        ) : responses === undefined ? (
           <p className="text-slate-500">Loading…</p>
-        ) : tab === 'drill' ? (
-          <DrillScreen skills={skills} recentItemIds={recentItemIds} sessionId={sessionId} />
         ) : (
           <SkillGraph skills={skills} onReset={resetProgress} />
         )}
