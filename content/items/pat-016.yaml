@@ -1,0 +1,16 @@
+id: pat-016
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [greedy]
+prompt: |
+  Each tile on a path says the furthest number of tiles you may hop forward
+  from it. Starting on the first tile, decide whether you can reach the last
+  one.
+choices: [greedy, dynamic-programming, backtracking, graphs]
+answer: greedy
+signals: [can you reach, furthest]
+explanation: |
+  DP works in O(n^2), but tracking the furthest reachable index in a single
+  left-to-right pass is enough: if you ever stand past it, you're stuck.
+  O(n), O(1) space.

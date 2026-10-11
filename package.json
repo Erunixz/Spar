@@ -1,0 +1,19 @@
+{
+  "name": "spar",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=20.17"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @spar/web",
+    "build": "npm run build -w @spar/web",
+    "lint": "npm run lint -w @spar/web",
+    "typecheck": "npm run typecheck -w @spar/web",
+    "test": "npm run test -w @spar/web",
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run build"
+  }
+}

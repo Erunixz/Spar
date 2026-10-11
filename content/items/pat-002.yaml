@@ -1,0 +1,16 @@
+id: pat-002
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [sliding-window]
+prompt: |
+  A website logs each visit's country code in order. Find the length of the
+  longest run of consecutive visits that contains visitors from at most k
+  different countries.
+choices: [sliding-window, prefix-sum, dynamic-programming, heap]
+answer: sliding-window
+signals: [consecutive run, longest, at most k distinct]
+explanation: |
+  "Longest contiguous stretch with at most k of something" is the classic
+  variable-size window: extend the right edge, keep a count map, and shrink
+  the left edge whenever the map has more than k keys. O(n).

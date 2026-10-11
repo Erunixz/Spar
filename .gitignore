@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+*.tsbuildinfo
+coverage/
+
+# env and secrets (commit .env.example only)
+.env
+.env.*
+!.env.example
+.dev.vars
+.wrangler/
+
+# python / ml
+__pycache__/
+*.pyc
+.venv/
+ml/data/
+ml/checkpoints/
+*.onnx
+
+# editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# test output
+playwright-report/
+test-results/

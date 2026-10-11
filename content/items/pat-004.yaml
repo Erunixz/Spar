@@ -1,0 +1,15 @@
+id: pat-004
+type: pattern
+difficulty: medium
+est_seconds: 75
+pattern_ids: [prefix-sum]
+prompt: |
+  A shop records each day's profit, which can be negative on bad days. Count
+  how many ranges of consecutive days have a total profit of exactly K.
+choices: [prefix-sum, sliding-window, two-pointers, greedy]
+answer: prefix-sum
+signals: [negative values allowed, consecutive range, exactly K, count]
+explanation: |
+  Negative values break the sliding-window shrink rule, so a window won't
+  work. Keep running totals and a hash map of how often each total has
+  appeared; at each day add count[total - K]. O(n).

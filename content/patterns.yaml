@@ -1,0 +1,102 @@
+# Interview pattern taxonomy.
+# Layers suggest an order but never lock a topic:
+#   foundations -> core -> structures -> advanced
+# prerequisites point at pattern ids that should be reasonably strong first.
+
+- id: arrays-hashing
+  name: Arrays & Hashing
+  layer: foundations
+  prerequisites: []
+  summary: Count, group or look up values in O(1) with a hash map or set.
+  signals: [duplicates, "seen before", frequency, grouping, anagram]
+
+- id: prefix-sum
+  name: Prefix Sum
+  layer: foundations
+  prerequisites: [arrays-hashing]
+  summary: Precompute running totals so any range sum is a subtraction.
+  signals: ["sum of a subarray", "range query", "negative numbers allowed", "exactly k"]
+
+- id: two-pointers
+  name: Two Pointers
+  layer: core
+  prerequisites: [arrays-hashing]
+  summary: Walk two indices toward each other or in step over sorted or paired data.
+  signals: [sorted, pair, "in place", palindrome, "constant extra space"]
+
+- id: sliding-window
+  name: Sliding Window
+  layer: core
+  prerequisites: [two-pointers, arrays-hashing]
+  summary: Grow and shrink a contiguous window while keeping a running summary.
+  signals: [contiguous, "longest substring", "at most k", "shortest subarray"]
+
+- id: binary-search
+  name: Binary Search
+  layer: core
+  prerequisites: [arrays-hashing]
+  summary: Halve a sorted range, or search over the answer when feasibility is monotonic.
+  signals: [sorted, "minimum capacity", "smallest value such that", "log n"]
+
+- id: monotonic-stack
+  name: Stack & Monotonic Stack
+  layer: core
+  prerequisites: [arrays-hashing]
+  summary: Keep a stack in sorted order to find the next greater or smaller element.
+  signals: ["next greater", "nearest taller", "matching brackets", "previous smaller"]
+
+- id: intervals
+  name: Intervals
+  layer: core
+  prerequisites: [arrays-hashing]
+  summary: Sort by start, then merge, insert or count overlaps in one sweep.
+  signals: [overlap, "start and end", bookings, merge]
+
+- id: greedy
+  name: Greedy
+  layer: core
+  prerequisites: [arrays-hashing]
+  summary: Make the locally best choice when an exchange argument proves it stays optimal.
+  signals: ["can you reach", "minimum number of", "always pick", "earliest finish"]
+
+- id: linked-list
+  name: Linked List
+  layer: structures
+  prerequisites: [two-pointers]
+  summary: Rewire next pointers carefully; fast and slow pointers find cycles and middles.
+  signals: [node, "next pointer", cycle, "reverse in place", middle]
+
+- id: trees
+  name: Trees
+  layer: structures
+  prerequisites: [linked-list, monotonic-stack]
+  summary: Recursive DFS or level-order BFS over a hierarchy.
+  signals: [root, depth, ancestor, level, subtree]
+
+- id: heap
+  name: Heap / Priority Queue
+  layer: structures
+  prerequisites: [arrays-hashing]
+  summary: Keep the k largest or smallest seen so far, or always process the cheapest next.
+  signals: ["top k", "k largest", streaming, "always the smallest next", median]
+
+- id: graphs
+  name: Graphs
+  layer: structures
+  prerequisites: [trees]
+  summary: BFS, DFS and topological sort over nodes and edges, including grids.
+  signals: [grid, connected, islands, prerequisites, "shortest path", dependencies]
+
+- id: backtracking
+  name: Backtracking
+  layer: advanced
+  prerequisites: [trees]
+  summary: Build candidates step by step and undo choices to list every valid answer.
+  signals: ["list all", "every combination", permutations, subsets, placements]
+
+- id: dynamic-programming
+  name: Dynamic Programming
+  layer: advanced
+  prerequisites: [backtracking]
+  summary: Reuse answers to overlapping subproblems with memoization or a table.
+  signals: ["number of ways", "minimum cost", "longest", "fewest edits", "overlapping subproblems"]

@@ -1,0 +1,15 @@
+id: pat-007
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [intervals]
+prompt: |
+  A room's booking list has a start and end time per booking, in no
+  particular order. Produce the blocks of time when the room is busy,
+  combining bookings that overlap or touch.
+choices: [intervals, heap, greedy, prefix-sum]
+answer: intervals
+signals: [start and end times, overlap, combine]
+explanation: |
+  Sort by start, then sweep: extend the current block while the next start is
+  at or before its end, otherwise close it and start a new one. O(n log n).

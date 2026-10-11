@@ -1,0 +1,14 @@
+id: pat-003
+type: pattern
+difficulty: easy
+est_seconds: 40
+pattern_ids: [arrays-hashing]
+prompt: |
+  Given a list of usernames, put the names that are rearrangements of the
+  same letters (like "stale" and "least") into the same group.
+choices: [arrays-hashing, two-pointers, binary-search, trees]
+answer: arrays-hashing
+signals: [group, rearrangements of letters]
+explanation: |
+  Build a canonical key per name (sorted letters or a 26-letter count) and
+  bucket names in a hash map keyed by it. O(n * L log L) with sorting.

@@ -1,0 +1,26 @@
+id: cx-004
+type: complexity
+difficulty: medium
+est_seconds: 60
+pattern_ids: [dynamic-programming]
+prompt: |
+  What is the time complexity for an m x n grid?
+
+  ```python
+  from functools import cache
+
+  def paths(m, n):
+      @cache
+      def go(r, c):
+          if r == m - 1 and c == n - 1:
+              return 1
+          if r >= m or c >= n:
+              return 0
+          return go(r + 1, c) + go(r, c + 1)
+      return go(0, 0)
+  ```
+choices: ["O(m + n)", "O(m * n)", "O(2^(m + n))", "O((m + n)^2)"]
+answer: "O(m * n)"
+explanation: |
+  Without the cache this is exponential, but @cache computes each (r, c)
+  state once, there are about m * n states, and each does O(1) work.

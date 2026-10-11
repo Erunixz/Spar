@@ -1,0 +1,16 @@
+id: pat-005
+type: pattern
+difficulty: medium
+est_seconds: 75
+pattern_ids: [binary-search]
+prompt: |
+  A print shop must print a book's chapters in order over D nights. Each
+  night it prints consecutive chapters up to a nightly page budget. Find the
+  smallest nightly budget that still finishes the book in D nights.
+choices: [binary-search, greedy, dynamic-programming, heap]
+answer: binary-search
+signals: [smallest value such that, feasibility gets easier as the value grows]
+explanation: |
+  If budget B works, every budget above B also works, so feasibility is
+  monotonic. Binary search on the budget between max(chapter) and
+  sum(chapters); each check is a greedy O(n) pass. O(n log sum).

@@ -1,0 +1,15 @@
+id: pat-014
+type: pattern
+difficulty: easy
+est_seconds: 45
+pattern_ids: [dynamic-programming]
+prompt: |
+  A fitness app counts how many different sequences of 1, 2 or 3 steps take
+  you up exactly n stairs.
+choices: [dynamic-programming, backtracking, greedy, binary-search]
+answer: dynamic-programming
+signals: [how many ways, smaller versions of the same question]
+explanation: |
+  ways(n) = ways(n-1) + ways(n-2) + ways(n-3). Listing sequences would be
+  backtracking, but counting them reuses overlapping subproblems. O(n) time,
+  O(1) space with three rolling values.

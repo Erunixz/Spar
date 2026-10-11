@@ -1,0 +1,26 @@
+id: cx-001
+type: complexity
+difficulty: easy
+est_seconds: 30
+pattern_ids: [binary-search]
+prompt: |
+  What is the time complexity of this function on a sorted list of length n?
+
+  ```python
+  def find(nums, target):
+      lo, hi = 0, len(nums) - 1
+      while lo <= hi:
+          mid = (lo + hi) // 2
+          if nums[mid] == target:
+              return mid
+          if nums[mid] < target:
+              lo = mid + 1
+          else:
+              hi = mid - 1
+      return -1
+  ```
+choices: ["O(1)", "O(log n)", "O(n)", "O(n log n)"]
+answer: "O(log n)"
+explanation: |
+  Each loop iteration halves the range [lo, hi], so it runs at most about
+  log2(n) + 1 times.

@@ -1,0 +1,16 @@
+id: pat-012
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [graphs]
+prompt: |
+  A build system lists tasks and which tasks each one depends on. Output an
+  order that runs every task after its dependencies, or report that the
+  dependencies are circular.
+choices: [graphs, trees, greedy, heap]
+answer: graphs
+signals: [dependencies, valid order, circular]
+explanation: |
+  Topological sort of a directed graph. Kahn's algorithm: repeatedly take
+  tasks with no remaining dependencies; if some never reach zero, there is a
+  cycle. O(V + E).

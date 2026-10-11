@@ -1,0 +1,15 @@
+id: pat-008
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [heap]
+prompt: |
+  Millions of request durations stream in from a server. At any moment you
+  must be able to report the 100 slowest requests seen so far, without
+  storing them all.
+choices: [heap, binary-search, sliding-window, arrays-hashing]
+answer: heap
+signals: [streaming, the k slowest, can't store everything]
+explanation: |
+  Keep a min-heap of size 100. A new duration replaces the heap's minimum
+  only if it is larger. O(n log k) time, O(k) memory.

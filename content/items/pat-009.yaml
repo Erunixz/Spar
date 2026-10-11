@@ -1,0 +1,15 @@
+id: pat-009
+type: pattern
+difficulty: easy
+est_seconds: 45
+pattern_ids: [linked-list]
+prompt: |
+  Each node in a chain stores a pointer to the next node. Decide whether the
+  chain eventually loops back on itself, using O(1) extra memory.
+choices: [linked-list, arrays-hashing, graphs, binary-search]
+answer: linked-list
+signals: [next pointer, loops back, O(1) memory]
+explanation: |
+  A visited set would need O(n) memory. Fast and slow pointers (Floyd's
+  cycle detection) meet if and only if there is a loop. O(n) time, O(1)
+  space.

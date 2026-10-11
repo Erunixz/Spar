@@ -1,0 +1,26 @@
+id: cx-002
+type: complexity
+difficulty: medium
+est_seconds: 60
+pattern_ids: [sliding-window]
+prompt: |
+  What is the time complexity of this function for a string of length n?
+
+  ```python
+  def longest_unique(s):
+      seen = set()
+      left = best = 0
+      for right, ch in enumerate(s):
+          while ch in seen:
+              seen.remove(s[left])
+              left += 1
+          seen.add(ch)
+          best = max(best, right - left + 1)
+      return best
+  ```
+choices: ["O(n)", "O(n log n)", "O(n^2)", "O(2^n)"]
+answer: "O(n)"
+explanation: |
+  The inner while loop looks nested, but left only moves forward and never
+  passes right, so across the whole run it advances at most n times. Total
+  work is O(n) amortized.

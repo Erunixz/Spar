@@ -1,0 +1,15 @@
+id: pat-006
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [monotonic-stack]
+prompt: |
+  Buildings stand in a row with known heights. For each building, find the
+  nearest building to its right that is strictly taller, or report none.
+choices: [monotonic-stack, heap, binary-search, two-pointers]
+answer: monotonic-stack
+signals: [nearest, to its right, strictly taller]
+explanation: |
+  "Next greater element" is the signature of a monotonic stack: keep indices
+  whose heights decrease; when a taller building arrives, it is the answer
+  for everything it pops. Each index is pushed and popped once, so O(n).

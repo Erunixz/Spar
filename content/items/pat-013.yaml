@@ -1,0 +1,15 @@
+id: pat-013
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [backtracking]
+prompt: |
+  A pizza menu lists topping prices. List every distinct set of toppings
+  whose prices add up to exactly your budget.
+choices: [backtracking, dynamic-programming, greedy, two-pointers]
+answer: backtracking
+signals: [list every, sets, exactly the budget]
+explanation: |
+  Counting the sets would be DP, but "list every set" means you must build
+  them: choose or skip each topping, prune when the sum passes the budget,
+  and undo the choice on return.

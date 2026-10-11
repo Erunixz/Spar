@@ -1,0 +1,15 @@
+id: pat-010
+type: pattern
+difficulty: easy
+est_seconds: 40
+pattern_ids: [trees]
+prompt: |
+  A company's reporting structure is stored as a binary tree with the CEO at
+  the root. Return how many levels separate the CEO from the deepest
+  employee.
+choices: [trees, graphs, dynamic-programming, heap]
+answer: trees
+signals: [root, deepest, levels]
+explanation: |
+  Maximum depth of a tree: recursive DFS returning 1 + max(left, right), or a
+  level-order BFS counting levels. O(n).

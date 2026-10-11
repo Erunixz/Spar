@@ -1,0 +1,16 @@
+id: pat-011
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [graphs]
+prompt: |
+  A satellite image is a grid of land and water cells. Count the separate
+  landmasses, where land cells touching up, down, left or right belong to the
+  same landmass.
+choices: [graphs, dynamic-programming, backtracking, sliding-window]
+answer: graphs
+signals: [grid, touching cells, count separate groups]
+explanation: |
+  Treat cells as nodes and shared edges as graph edges. Each unvisited land
+  cell starts a BFS/DFS flood fill that marks its whole component; count the
+  starts. O(rows * cols).

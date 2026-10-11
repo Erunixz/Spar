@@ -1,0 +1,24 @@
+id: cx-003
+type: complexity
+difficulty: medium
+est_seconds: 45
+pattern_ids: [heap]
+prompt: |
+  What is the time complexity for a list of n numbers and a given k?
+
+  ```python
+  import heapq
+
+  def k_largest(nums, k):
+      heap = []
+      for x in nums:
+          heapq.heappush(heap, x)
+          if len(heap) > k:
+              heapq.heappop(heap)
+      return heap
+  ```
+choices: ["O(n)", "O(n log n)", "O(n log k)", "O(k log n)"]
+answer: "O(n log k)"
+explanation: |
+  The heap never holds more than k + 1 items, so each push and pop costs
+  O(log k), done n times.

@@ -1,0 +1,14 @@
+id: pat-015
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [dynamic-programming]
+prompt: |
+  A spell checker needs the fewest single-character insertions, deletions or
+  replacements that turn a typed word into a dictionary word.
+choices: [dynamic-programming, two-pointers, greedy, graphs]
+answer: dynamic-programming
+signals: [fewest operations, two strings, prefixes]
+explanation: |
+  Edit distance: dp[i][j] is the cost to turn the first i letters into the
+  first j letters, built from three neighbouring cells. O(m * n).

@@ -1,0 +1,16 @@
+id: pat-001
+type: pattern
+difficulty: easy
+est_seconds: 45
+pattern_ids: [two-pointers]
+prompt: |
+  Badge numbers are printed on a roll in ascending order. Find two badges
+  whose numbers add up to exactly a target value, using only constant extra
+  memory.
+choices: [two-pointers, sliding-window, binary-search, heap]
+answer: two-pointers
+signals: [ascending order, a pair, constant extra memory]
+explanation: |
+  Sorted input plus "find a pair" plus O(1) memory: start one pointer at each
+  end and move the left one up when the sum is too small, the right one down
+  when it is too big. O(n) time, O(1) space.
