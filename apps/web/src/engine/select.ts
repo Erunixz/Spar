@@ -1,14 +1,29 @@
 import type { Item } from '../content/schema'
 import { DIFFICULTY_PRIOR } from './elo'
-import { formatReason, scoreCandidate, type RecContext } from './recommend'
+import { PARAMS } from './params'
+import {
+  formatReason,
+  scoreCandidate,
+  topCandidates,
+  type CandidateScore,
+  type RecContext,
+  type Scored,
+} from './recommend'
 
 export interface Pick {
   item: Item
   reason: string
+  /** Everything needed to log this decision for Phase 9 re-estimation. */
+  decision: {
+    scored: Scored
+    noise: number
+    candidates: CandidateScore[]
+    poolSize: number
+  }
 }
 
 /** Don't repeat any of the last few items while others are available. */
-export const RECENT_EXCLUDE = 8
+export const RECENT_EXCLUDE = PARAMS.select.recentExclude
 
 export interface PickOptions {
   random?: () => number
@@ -35,15 +50,21 @@ export function pickNextItem(
   const excluded = new Set(excludeCount > 0 ? recentItemIds.slice(-excludeCount) : [])
   const pool = fitting.filter((i) => !excluded.has(i.id))
 
-  let best: { item: Item; score: number; reason: string } | null = null
+  let best: { item: Item; total: number; scored: Scored; noise: number } | null = null
+  const all: CandidateScore[] = []
   for (const item of pool) {
     const b = ctx.skills.itemDifficulty.get(item.id) ?? DIFFICULTY_PRIOR[item.difficulty]
     const scored = scoreCandidate(item.pattern_ids, b, ctx)
     if (!scored) continue
-    const score = scored.score + random() * 0.25
-    if (!best || score > best.score) {
-      best = { item, score, reason: formatReason(patternName(scored.targetPattern), scored.reasons) }
-    }
+    all.push({ ref: `item:${item.id}`, baseScore: scored.score })
+    const noise = random() * PARAMS.rec.noise.drill
+    const total = scored.score + noise
+    if (!best || total > best.total) best = { item, total, scored, noise }
   }
-  return best && { item: best.item, reason: best.reason }
+  if (!best) return null
+  return {
+    item: best.item,
+    reason: formatReason(patternName(best.scored.targetPattern), best.scored.reasons),
+    decision: { scored: best.scored, noise: best.noise, candidates: topCandidates(all), poolSize: all.length },
+  }
 }

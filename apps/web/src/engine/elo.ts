@@ -5,16 +5,15 @@
  * theta is a person's ability on one pattern, b is an item's difficulty.
  */
 
-/** Prior standard deviation of ability before any evidence. */
-export const PRIOR_SD = 1.5
-/** Learning-rate schedule: K starts at K_MAX and decays toward K_MIN with practice. */
-export const K_MAX = 0.8
-export const K_MIN = 0.15
-export const K_HALF_LIFE = 8
-/** Items move slower than people: they are shared across many responses. */
-export const ITEM_K = 0.1
+import { PARAMS } from './params'
 
-export const DIFFICULTY_PRIOR = { easy: -1, medium: 0, hard: 1 } as const
+// Tunable values live in params.ts; these aliases keep call sites short.
+export const PRIOR_SD = PARAMS.elo.priorSd
+export const K_MAX = PARAMS.elo.kMax
+export const K_MIN = PARAMS.elo.kMin
+export const K_HALF_LIFE = PARAMS.elo.kHalfLife
+export const ITEM_K = PARAMS.elo.itemK
+export const DIFFICULTY_PRIOR = PARAMS.elo.difficultyPrior
 
 export interface Rating {
   theta: number

@@ -1,6 +1,7 @@
 import type { Difficulty, LcProblem, Pattern } from '../content/schema'
 import { pCorrect } from './elo'
 import { bestOutcome, LC_DIFFICULTY_PRIOR, type LcLogEvent, type LcOutcome } from './lc'
+import { PARAMS } from './params'
 import type { PatternSkill, SkillState } from './skill'
 
 /**
@@ -16,24 +17,14 @@ export interface RecContext {
   now: number
 }
 
-/** Aim for problems the user solves 60 to 75% of the time: hard enough to learn from. */
-export const TARGET_P: readonly [number, number] = [0.6, 0.75]
-/**
- * A stretch pick is harder than the main picks: at least STRETCH_GAP below
- * their lowest predicted success, but not hopeless.
- */
-export const STRETCH_GAP = 0.1
-export const STRETCH_FLOOR = 0.2
-/** Until FSRS lands, a pattern is due for review after a week without practice. */
-export const FADING_MS = 7 * 24 * 60 * 60 * 1000
-/** A prerequisite with evidence and mastery below this holds its dependants back. */
-export const WEAK_PREREQ_MASTERY = 40
-/** Rough minutes to budget for a LeetCode problem. */
-export const LC_MINUTES: Record<Difficulty, number> = { easy: 15, medium: 25, hard: 40 }
-
-const W_FIT = 1.5
-const W_FADING = 0.3
-const W_PREREQ = 0.5
+// Tunable values live in params.ts; see the comments there.
+export const TARGET_P = PARAMS.rec.targetP
+export const STRETCH_GAP = PARAMS.rec.stretchGap
+export const STRETCH_FLOOR = PARAMS.rec.stretchFloor
+export const FADING_MS = PARAMS.rec.fadingMs
+export const WEAK_PREREQ_MASTERY = PARAMS.rec.weakPrereqMastery
+export const LC_MINUTES: Record<Difficulty, number> = PARAMS.lc.minutes
+const W = PARAMS.rec.weights
 
 /** How much a pattern needs practice: weakness (0..1) plus uncertainty (se shrinks from 1.5 toward ~0.3). */
 export function practiceNeed(skill: PatternSkill): number {
@@ -58,8 +49,36 @@ export function weakPrerequisites(patternId: string, ctx: RecContext): string[] 
   })
 }
 
+/** The inputs behind a score, logged with each recommendation for Phase 9 re-estimation. */
+export interface RecFeatures {
+  need: number
+  p: number
+  /** Distance outside the target band, 0 when inside. */
+  miss: number
+  mastery: number
+  se: number
+  evidence: boolean
+  fading: boolean
+  weakPrereq: boolean
+}
+
+/** A candidate's base score (before noise), for recovering selection propensities later. */
+export interface CandidateScore {
+  ref: string
+  baseScore: number
+}
+
+/** How many runner-up candidates to log alongside each recommendation. */
+export const LOGGED_CANDIDATES = 10
+
+export function topCandidates(all: CandidateScore[]): CandidateScore[] {
+  return [...all].sort((a, b) => b.baseScore - a.baseScore).slice(0, LOGGED_CANDIDATES)
+}
+
 export interface Scored {
+  /** Base score before tie-breaking noise. */
   score: number
+  features: RecFeatures
   /** The candidate's pattern that most needs practice; the reason is about it. */
   targetPattern: string
   /** Predicted chance of success on the target pattern. */
@@ -80,21 +99,31 @@ export function scoreCandidate(patternIds: string[], b: number, ctx: RecContext)
   const p = pCorrect(target.rating.theta, b)
   const [lo, hi] = TARGET_P
   const miss = p < lo ? lo - p : p > hi ? p - hi : 0
-  let score = practiceNeed(target) - W_FIT * miss
+  const need = practiceNeed(target)
+  let score = need - W.fit * miss
   const reasons: string[] = []
+  const evidence = hasEvidence(target)
+  const fading = isFading(target, ctx.now)
+  const weakPrereq = weakPrerequisites(target.patternId, ctx).length > 0
 
-  if (!hasEvidence(target)) reasons.push('not practiced yet')
+  if (!evidence) reasons.push('not practiced yet')
   else if (target.mastery < 40) reasons.push('low mastery')
   else if (target.se > 0.8) reasons.push('still uncertain')
   else reasons.push(`mastery ${Math.round(target.mastery)}`)
 
-  if (isFading(target, ctx.now)) {
-    score += W_FADING
+  if (fading) {
+    score += W.fading
     reasons.push('not practiced in over a week')
   }
-  if (weakPrerequisites(target.patternId, ctx).length > 0) score -= W_PREREQ
+  if (weakPrereq) score -= W.prereq
 
-  return { score, targetPattern: target.patternId, p, reasons }
+  return {
+    score,
+    features: { need, p, miss, mastery: target.mastery, se: target.se, evidence, fading, weakPrereq },
+    targetPattern: target.patternId,
+    p,
+    reasons,
+  }
 }
 
 export type LcRecKind = 'weak' | 'review' | 'retry' | 'stretch'
@@ -106,6 +135,10 @@ export interface LcRecommendation {
   targetPattern: string
   p: number
   reasons: string[]
+  features: RecFeatures
+  baseScore: number
+  /** The tie-breaking noise added to baseScore when ranking. */
+  noise: number
 }
 
 export interface RecommendOptions {
@@ -123,8 +156,18 @@ export function recommendLeetCode(
   catalog: LcProblem[],
   lcLogs: LcLogEvent[],
   ctx: RecContext,
-  { count = 3, maxMinutes = Infinity, random = Math.random }: RecommendOptions = {},
+  options: RecommendOptions = {},
 ): LcRecommendation[] {
+  return recommendLeetCodeDetailed(catalog, lcLogs, ctx, options).picks
+}
+
+/** recommendLeetCode plus the top candidates' base scores, for logging. */
+export function recommendLeetCodeDetailed(
+  catalog: LcProblem[],
+  lcLogs: LcLogEvent[],
+  ctx: RecContext,
+  { count = 3, maxMinutes = Infinity, random = Math.random }: RecommendOptions = {},
+): { picks: LcRecommendation[]; candidates: CandidateScore[]; poolSize: number } {
   const history = new Map<string, { lastTs: number; best: LcOutcome }>()
   for (const l of lcLogs) {
     const h = history.get(l.slug)
@@ -157,9 +200,20 @@ export function recommendLeetCode(
         reasons.unshift('retry: you needed help last time')
       }
     }
+    const noise = random() * PARAMS.rec.noise.lc
     candidates.push({
-      rec: { problem, minutes, kind, targetPattern: scored.targetPattern, p: scored.p, reasons },
-      score: scored.score + random() * 0.1,
+      rec: {
+        problem,
+        minutes,
+        kind,
+        targetPattern: scored.targetPattern,
+        p: scored.p,
+        reasons,
+        features: scored.features,
+        baseScore: scored.score,
+        noise,
+      },
+      score: scored.score + noise,
     })
   }
   const ranked = candidates.sort((a, b) => b.score - a.score).map((c) => c.rec)
@@ -188,7 +242,11 @@ export function recommendLeetCode(
       if (filler) picks.push(filler)
     }
   }
-  return picks
+  return {
+    picks,
+    candidates: topCandidates(ranked.map((r) => ({ ref: `lc:${r.problem.slug}`, baseScore: r.baseScore }))),
+    poolSize: ranked.length,
+  }
 }
 
 /** "Sliding Window: low mastery, not practiced in over a week" */

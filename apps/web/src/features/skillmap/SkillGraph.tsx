@@ -1,4 +1,5 @@
 import { content, LAYERS, type Layer, type Pattern } from '../../content'
+import { exportAllData } from '../../db'
 import type { PatternSkill, SkillState } from '../../engine/skill'
 
 const LAYER_LABEL: Record<Layer, string> = {
@@ -115,13 +116,18 @@ export function SkillGraph({ skills, lcSolvedTotal, onReset }: Props) {
       })}
 
       {(attempts > 0 || all.some((s) => s.lcLogged > 0)) && (
-        <button
-          type="button"
-          onClick={onReset}
-          className="text-sm text-slate-400 underline hover:text-rose-600"
-        >
-          Reset all progress
-        </button>
+        <div className="flex flex-wrap gap-6 text-sm">
+          <button
+            type="button"
+            onClick={() => void downloadExport()}
+            className="text-slate-500 underline hover:text-slate-900 dark:hover:text-slate-100"
+          >
+            Export my data (JSON)
+          </button>
+          <button type="button" onClick={onReset} className="text-slate-400 underline hover:text-rose-600">
+            Reset all progress
+          </button>
+        </div>
       )}
     </div>
   )
@@ -134,4 +140,16 @@ function Stat({ label, value }: { label: string; value: string | number }) {
       <div className="text-slate-500 dark:text-slate-400">{label}</div>
     </div>
   )
+}
+
+/** Saves everything on this device as a JSON file (backup, and input for Phase 9 re-estimation). */
+async function downloadExport() {
+  const data = await exportAllData()
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `spar-export-${data.exportedAt.slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
 }

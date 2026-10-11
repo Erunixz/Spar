@@ -1,11 +1,18 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { content, type Item } from '../../content'
-import { recordResponse, type LcLogRow, type SessionRow } from '../../db'
-import { recommendLeetCode, type LcRecommendation, type RecContext } from '../../engine/recommend'
+import {
+  logRecommendation,
+  recordResponse,
+  setRecommendationOutcome,
+  type LcLogRow,
+  type SessionRow,
+} from '../../db'
+import { PARAMS } from '../../engine/params'
+import { formatReason, recommendLeetCodeDetailed, type LcRecommendation, type RecContext } from '../../engine/recommend'
 import { pickNextItem, type Pick } from '../../engine/select'
 import { isSessionOver, remainingSeconds } from '../../engine/session'
 import type { SkillState } from '../../engine/skill'
-import { LcTaskCard } from '../recommend/LcTaskCard'
+import { LcTaskCard, type LcTaskResult } from '../recommend/LcTaskCard'
 import { formatClock, useNow } from '../sessions/useNow'
 import { Prompt } from './Prompt'
 
@@ -19,12 +26,9 @@ interface Props {
   onEnd: () => void
 }
 
-/** Sessions this long (or unlimited) include one LeetCode problem... */
-export const LC_TASK_MIN_SESSION = 30
-/** ...after this many drills as a warm-up. */
-export const LC_TASK_AFTER_DRILLS = 3
-/** Minutes kept free after the LeetCode problem for the end of the session. */
-const LC_TASK_SLACK_MIN = 2
+const LC_TASK_MIN_SESSION = PARAMS.session.lcTaskMinSession
+const LC_TASK_AFTER_DRILLS = PARAMS.session.lcTaskAfterDrills
+const LC_TASK_SLACK_MIN = PARAMS.session.lcTaskSlackMin
 
 const patternName = (id: string) => content.patternsById.get(id)?.name ?? id
 
@@ -48,7 +52,12 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionSta
   const [timedOut, setTimedOut] = useState(false)
   // Counted here too because sessionStats can lag the answer just saved.
   const [answeredHere, setAnsweredHere] = useState(0)
-  const [lcTask, setLcTask] = useState<{ rec: LcRecommendation; shownAt: number } | null>(null)
+  const [lcTask, setLcTask] = useState<{ rec: LcRecommendation; shownAt: number; recId: Promise<number> } | null>(
+    null,
+  )
+  // Id of the logged recommendation for the drill on screen (Phase 9 data).
+  const drillRecId = useRef<Promise<number> | null>(null)
+  const loggedPick = useRef<Pick | null>(null)
   // One LeetCode problem per session, even if this screen remounts.
   const [lcOffered, setLcOffered] = useState(() => lcLogs.some((l) => l.sessionId === session.id))
   const now = useNow(250)
@@ -57,6 +66,7 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionSta
     (choice: string, outOfTime = false) => {
       if (!pick || chosen !== null) return
       const correct = !outOfTime && choice === pick.item.answer
+      const latencyMs = Date.now() - shownAt
       setChosen(choice)
       setTimedOut(outOfTime)
       setAnsweredHere((n) => n + 1)
@@ -64,11 +74,14 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionSta
         itemId: pick.item.id,
         choice,
         correct,
-        latencyMs: Date.now() - shownAt,
+        latencyMs,
         sessionId: session.id,
         ts: Date.now(),
         timedOut: outOfTime,
       })
+      void drillRecId.current?.then((id) =>
+        setRecommendationOutcome(id, { type: 'drill', correct, latencyMs, timedOut: outOfTime }),
+      )
     },
     [pick, chosen, shownAt, session.id],
   )
@@ -82,12 +95,27 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionSta
     const answered = Math.max(sessionStats.answered, answeredHere)
     if (longSession && !lcOffered && answered >= LC_TASK_AFTER_DRILLS) {
       setLcOffered(true)
-      const [rec] = recommendLeetCode(content.lcCatalog, lcLogs, ctx, {
+      const { picks, candidates, poolSize } = recommendLeetCodeDetailed(content.lcCatalog, lcLogs, ctx, {
         count: 1,
         maxMinutes: remaining / 60 - LC_TASK_SLACK_MIN,
       })
+      const rec = picks[0]
       if (rec) {
-        setLcTask({ rec, shownAt: time })
+        const recId = logRecommendation({
+          sessionId: session.id,
+          surface: 'session-lc',
+          candidateRef: `lc:${rec.problem.slug}`,
+          targetPattern: rec.targetPattern,
+          kind: rec.kind,
+          reason: formatReason(patternName(rec.targetPattern), rec.reasons),
+          features: rec.features,
+          baseScore: rec.baseScore,
+          noise: rec.noise,
+          noiseScale: PARAMS.rec.noise.lc,
+          candidates,
+          poolSize,
+        })
+        setLcTask({ rec, shownAt: time, recId })
         return
       }
     }
@@ -103,6 +131,37 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionSta
     setTimedOut(false)
     setShownAt(Date.now())
   }, [pick, recentItemIds, lcLogs, lcOffered, sessionStats.answered, answeredHere, session, ctxAt, onEnd])
+
+  // Log each drill pick once, when it is first shown.
+  useEffect(() => {
+    if (!pick || lcTask || loggedPick.current === pick) return
+    loggedPick.current = pick
+    const { scored, noise, candidates, poolSize } = pick.decision
+    drillRecId.current = logRecommendation({
+      sessionId: session.id,
+      surface: 'drill',
+      candidateRef: `item:${pick.item.id}`,
+      targetPattern: scored.targetPattern,
+      kind: 'drill',
+      reason: pick.reason,
+      features: scored.features,
+      baseScore: scored.score,
+      noise,
+      noiseScale: PARAMS.rec.noise.drill,
+      candidates,
+      poolSize,
+    })
+  }, [pick, lcTask, session.id])
+
+  const finishLcTask = useCallback(
+    (result: LcTaskResult | null) => {
+      void lcTask?.recId.then((id) =>
+        setRecommendationOutcome(id, result ? { type: 'lc', ...result } : { type: 'skipped' }),
+      )
+      next()
+    },
+    [lcTask, next],
+  )
 
   // Timed mode: an unanswered item times out after its est_seconds.
   useEffect(() => {
@@ -151,7 +210,7 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionSta
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         {sessionBar}
-        <LcTaskCard rec={lcTask.rec} shownAt={lcTask.shownAt} sessionId={session.id} onDone={next} />
+        <LcTaskCard rec={lcTask.rec} shownAt={lcTask.shownAt} sessionId={session.id} onDone={finishLcTask} />
       </div>
     )
   }

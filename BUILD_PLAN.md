@@ -309,7 +309,7 @@ The same schema lives in IndexedDB; the client syncs responses once at the end o
 
 ## Build plan
 
-Eight phases, each ending in a working app you can demo locally, with deployment as the last phase; no fixed timeline, so move to the next phase only when the current one's "done" check passes.
+Nine phases, each ending in a working app you can demo locally. Deployment is Phase 8, and Phase 9 re-estimates the hand-set weights from real usage. There's no fixed timeline, so move to the next phase only when the current one's "done" check passes.
 
 **Working agreement:** Claude writes, runs and tests code and hands over the files, but never commits or pushes anything. Erfan reviews every change and does all commits and pushes to GitHub himself.
 
@@ -322,7 +322,8 @@ Eight phases, each ending in a working app you can demo locally, with deployment
    - Pattern taxonomy (\~14 patterns to start), item YAML schema, 120 original pattern and complexity items.
    - Drill screen, timed mode, 10/30/60-minute session builder, IndexedDB storage, quick LeetCode log.
    - ML: per-pattern and per-item Elo, unit-tested. Skill graph with solved counts and a shareable image; rule-based recommender for drills and LeetCode links.
-   - Done: you use it daily for a week. Show: skill-graph screenshots in the README.
+   - Every tunable number lives in one versioned `engine/params.ts`, and every drill pick and in-session LeetCode task is logged with its features, runner-up scores, tie-break noise and outcome (the data Phase 9 learns from). JSON export of all local data.
+   - Done: a few days of your own use to catch friction; the numbers themselves are tuned from data in Phase 9. Show: skill-graph screenshots in the README.
 3. **Visual tab.** Goal: the demo GIF.
    - Pyodide worker, settrace tracer with step cap, copied snapshots, timeout kill.
    - Views: array with named pointers, variables, call stack; then linked list, tree, DP grid, recursion tree. Golden tests.
@@ -333,7 +334,7 @@ Eight phases, each ending in a working app you can demo locally, with deployment
    - Done: metrics and browser latency on /lab. Show: the model card.
 5. **Placement test + backend.** Goal: the Duolingo-style diagnosis.
    - Model #2 difficulty priors; Rasch/2PL, max-information selection and a standard-error stop rule in TypeScript; catsim simulation comparing adaptive vs fixed form.
-   - Workers + D1 + GitHub OAuth, built and tested locally with wrangler dev; opt-in sync; calibration script (scheduled nightly after deploy).
+   - Workers + D1 + GitHub OAuth, built and tested locally with wrangler dev; opt-in sync of responses, LeetCode logs and the recommendation log; calibration script (scheduled nightly after deploy).
    - Done: placement finishes in 10 minutes or less; simulation plot on /lab. Show: "finds weak areas in K items."
 6. **Coding problems + structured mock.** Goal: interview simulation.
    - 30 original problems with tests and hint ladders; Model #3 complexity classifier; staged mock with rubric report and share link.
@@ -344,6 +345,13 @@ Eight phases, each ending in a working app you can demo locally, with deployment
 8. **Deploy and launch.** Goal: a live link and real users.
    - Cloudflare Pages, Workers and D1 in production; subdomain of erfanzamani.com; nightly calibration on; error reporting.
    - Launch posts per the spec; collect retention and model metrics for the README and resume.
+9. **Re-estimation from usage.** Goal: replace every hand-set weight with one learned from real data.
+   - Inputs: synced responses, LeetCode logs and the recommendation log (plus your own pre-launch JSON export), each row tagged with the params version that produced it.
+   - Elo learning rates and prior SD: grid or gradient search minimizing the Brier score of next-answer predictions on a time-based holdout.
+   - LeetCode difficulty priors and outcome scores: fit to logged outcomes by maximum likelihood.
+   - Recommender weights and target band: off-policy evaluation of candidate params against the v1 rules, using the logged runner-up scores and noise to recover selection propensities; the reward is mastery gained per minute. Feeds Model #4.
+   - Ship each result as a new `params.ts` version; A/B test against the previous version before switching everyone.
+   - Done: a params version learned from data beats v1 on held-out Brier score and on offline reward. Show: a before/after calibration plot and the learned-vs-guessed weight table on /lab.
    - Stretch afterwards: voice mode, in-browser LLM follow-ups, DKT, leagues, JS views.
 
 ### Repo structure

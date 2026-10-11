@@ -18,6 +18,8 @@ Find the interview patterns you're weakest at, then spend whatever time you have
 
 Every answer updates a per-pattern ability `theta` and a per-item difficulty `b` on the logit scale, where `P(correct) = sigmoid(theta - b)`. That is the same scale the Rasch model uses, so the planned adaptive placement test can reuse it. Skill state is rebuilt by replaying the stored responses, so the response log is the single source of truth. The math lives in [apps/web/src/engine](apps/web/src/engine) and is unit-tested.
 
+Every tunable number (learning rates, priors, the target success band, ranking weights) lives in one versioned file, [params.ts](apps/web/src/engine/params.ts). The v1 values are hand-set. Each drill pick and in-session LeetCode task is logged with its features, runner-up scores, tie-break noise, params version and outcome, so a later phase can re-estimate those numbers from real usage. "Export my data" on the skill graph page downloads everything as JSON.
+
 ## Repo layout
 
 ```

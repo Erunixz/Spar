@@ -4,28 +4,34 @@ import { LC_OUTCOME_LABEL, LC_OUTCOMES, lcUrl, type LcOutcome } from '../../engi
 import type { LcRecommendation } from '../../engine/recommend'
 import { LcRecCard } from './LcRecCard'
 
+export interface LcTaskResult {
+  outcome: LcOutcome
+  minutes: number | null
+}
+
 interface Props {
   rec: LcRecommendation
   shownAt: number
   sessionId: string
-  /** Called after logging an outcome or skipping. */
-  onDone: () => void
+  /** Called with the logged result, or null when skipped. */
+  onDone: (result: LcTaskResult | null) => void
 }
 
 /** A LeetCode problem placed inside a session: solve it on leetcode.com, then log how it went. */
 export function LcTaskCard({ rec, shownAt, sessionId, onDone }: Props) {
   const log = useCallback(
     async (outcome: LcOutcome) => {
-      const minutes = Math.round((Date.now() - shownAt) / 60_000)
+      const elapsed = Math.round((Date.now() - shownAt) / 60_000)
+      const minutes = elapsed > 0 ? elapsed : null
       await addLcLog({
         slug: rec.problem.slug,
         outcome,
         patternIds: rec.problem.pattern_ids,
         difficulty: rec.problem.difficulty,
-        minutes: minutes > 0 ? minutes : null,
+        minutes,
         sessionId,
       })
-      onDone()
+      onDone({ outcome, minutes })
     },
     [rec, shownAt, sessionId, onDone],
   )
@@ -62,7 +68,7 @@ export function LcTaskCard({ rec, shownAt, sessionId, onDone }: Props) {
       </div>
       <button
         type="button"
-        onClick={onDone}
+        onClick={() => onDone(null)}
         className="text-sm text-slate-500 underline hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
       >
         Skip, back to drills

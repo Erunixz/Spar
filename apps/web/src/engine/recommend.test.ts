@@ -5,11 +5,15 @@ import {
   FADING_MS,
   formatReason,
   isFading,
+  LOGGED_CANDIDATES,
   recommendLeetCode,
+  recommendLeetCodeDetailed,
   scoreCandidate,
   weakPrerequisites,
   type RecContext,
 } from './recommend'
+import { PARAMS } from './params'
+import { pickNextItem } from './select'
 import { computeSkills, type ResponseEvent } from './skill'
 
 const DAY = 24 * 60 * 60 * 1000
@@ -159,6 +163,42 @@ describe('recommendLeetCode', () => {
     const logs = [log('b-easy', 'viewed', NOW - 10 * DAY)]
     const recs = recommendLeetCode(catalog, logs, ctxFrom([], logs), { ...noNoise, count: 7 })
     expect(recs.find((r) => r.problem.slug === 'b-easy')?.kind).toBe('retry')
+  })
+})
+
+describe('decision logging (Phase 9 data)', () => {
+  it('exposes the features behind a score', () => {
+    const ctx = ctxFrom(answers('a', false, 4, NOW - FADING_MS - DAY))
+    const s = scoreCandidate(['c'], 0, ctx)!
+    expect(s.features).toMatchObject({ evidence: false, fading: false, weakPrereq: true })
+    const a = scoreCandidate(['a'], 0, ctx)!
+    expect(a.features).toMatchObject({ evidence: true, fading: true, weakPrereq: false })
+    expect(a.features.p).toBeCloseTo(a.p)
+  })
+
+  it('logs runner-up base scores and the noise for drill picks', () => {
+    const pick = pickNextItem(items, ctxFrom([]), [], (id) => id, { random: () => 0.5 })!
+    expect(pick.decision.noise).toBeCloseTo(0.5 * PARAMS.rec.noise.drill)
+    expect(pick.decision.poolSize).toBe(items.length)
+    const refs = pick.decision.candidates.map((c) => c.ref)
+    expect(refs).toContain(`item:${pick.item.id}`)
+    const scores = pick.decision.candidates.map((c) => c.baseScore)
+    expect(scores).toEqual([...scores].sort((x, y) => y - x))
+  })
+
+  it('caps logged LeetCode candidates and keeps base score separate from noise', () => {
+    const { picks, candidates, poolSize } = recommendLeetCodeDetailed(catalog, [], ctxFrom([]), {
+      random: () => 0.5,
+    })
+    expect(poolSize).toBe(catalog.length)
+    expect(candidates.length).toBeLessThanOrEqual(LOGGED_CANDIDATES)
+    const first = picks[0]!
+    expect(first.noise).toBeCloseTo(0.5 * PARAMS.rec.noise.lc)
+    expect(candidates.find((c) => c.ref === `lc:${first.problem.slug}`)?.baseScore).toBeCloseTo(first.baseScore)
+  })
+
+  it('stamps a params version', () => {
+    expect(PARAMS.version).toMatch(/^v\d+-/)
   })
 })
 

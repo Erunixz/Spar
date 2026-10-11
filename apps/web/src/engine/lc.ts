@@ -1,4 +1,5 @@
 import type { Difficulty, LcProblem } from '../content/schema'
+import { PARAMS } from './params'
 
 export const LC_OUTCOMES = ['unaided', 'hints', 'viewed'] as const
 export type LcOutcome = (typeof LC_OUTCOMES)[number]
@@ -13,10 +14,10 @@ export const LC_OUTCOME_LABEL: Record<LcOutcome, string> = {
  * Elo score per outcome. Only unaided solves count fully; a viewed solution is
  * exposure, not skill, so it scores as a miss.
  */
-export const LC_OUTCOME_SCORE: Record<LcOutcome, number> = { unaided: 1, hints: 0.5, viewed: 0 }
+export const LC_OUTCOME_SCORE: Record<LcOutcome, number> = PARAMS.lc.outcomeScore
 
 /** Full problems are harder than 60-second drill items, so their priors sit higher. */
-export const LC_DIFFICULTY_PRIOR: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 }
+export const LC_DIFFICULTY_PRIOR: Record<Difficulty, number> = PARAMS.lc.difficultyPrior
 
 export interface LcLogEvent {
   slug: string
