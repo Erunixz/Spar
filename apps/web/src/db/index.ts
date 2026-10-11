@@ -1,11 +1,25 @@
-import Dexie, { type EntityTable } from 'dexie'
+import Dexie, { type EntityTable, type Transaction } from 'dexie'
 import type { LcLogEvent, LcOutcome } from '../engine/lc'
 import { PARAMS } from '../engine/params'
 import type { CandidateScore, RecFeatures } from '../engine/recommend'
 import type { SessionLength } from '../engine/session'
 
+/**
+ * Row ids are UUIDs generated on the device, so rows from several devices can
+ * be synced into one account without colliding (Phase 5).
+ */
+export function newId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  // randomUUID needs a secure context; plain-http LAN testing on a phone doesn't have one.
+  const b = crypto.getRandomValues(new Uint8Array(16))
+  b[6] = (b[6]! & 0x0f) | 0x40
+  b[8] = (b[8]! & 0x3f) | 0x80
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+}
+
 export interface ResponseRow {
-  id: number
+  id: string
   itemId: string
   /** The choice the user picked ('' on a timeout), kept for error analysis. */
   choice: string
@@ -27,7 +41,7 @@ export interface SessionRow {
 
 /** One quick-log entry for a problem solved on leetcode.com. */
 export interface LcLogRow extends LcLogEvent {
-  id: number
+  id: string
   minutes: number | null
   /** Set when the problem was done inside a practice session. */
   sessionId?: string
@@ -43,7 +57,7 @@ export type RecOutcome =
  * behind it. Phase 9 re-estimates PARAMS from these rows.
  */
 export interface RecommendationRow {
-  id: number
+  id: string
   ts: number
   sessionId: string | null
   /** Where it was shown: the next drill item, or the LeetCode task inside a session. */
@@ -65,7 +79,9 @@ export interface RecommendationRow {
   outcome: RecOutcome | null
 }
 
-export const db = new Dexie('spar') as Dexie & {
+export const DB_NAME = 'spar'
+
+export const db = new Dexie(DB_NAME) as Dexie & {
   responses: EntityTable<ResponseRow, 'id'>
   sessions: EntityTable<SessionRow, 'id'>
   lcLogs: EntityTable<LcLogRow, 'id'>
@@ -97,13 +113,53 @@ db.version(4).stores({
   recommendations: '++id, ts, sessionId, surface, candidateRef',
 })
 
+/*
+ * v5-v8: switch responses, lcLogs and recommendations from auto-increment
+ * numbers to UUID primary keys. IndexedDB can't change a primary key in
+ * place, so each table is copied to a temporary table (v5), dropped (v6),
+ * recreated with the new key and refilled (v7), and the temporary tables
+ * are dropped (v8). Dexie runs all pending steps in one upgrade.
+ */
+const MIGRATED = {
+  responses: 'id, itemId, sessionId, ts',
+  lcLogs: 'id, slug, ts',
+  recommendations: 'id, ts, sessionId, surface, candidateRef',
+} as const
+type MigratedTable = keyof typeof MIGRATED
+const MIGRATED_TABLES = Object.keys(MIGRATED) as MigratedTable[]
+const tmp = (t: MigratedTable) => `${t}_uuid_tmp`
+
+async function copyRows(tx: Transaction, from: string, to: string, withNewIds: boolean) {
+  const rows = await tx.table(from).toArray()
+  await tx.table(to).bulkAdd(withNewIds ? rows.map((r) => ({ ...r, id: newId() })) : rows)
+}
+
+db.version(5)
+  .stores({
+    sessions: 'id, startedAt',
+    ...Object.fromEntries(MIGRATED_TABLES.map((t) => [tmp(t), MIGRATED[t]])),
+  })
+  .upgrade(async (tx) => {
+    for (const t of MIGRATED_TABLES) await copyRows(tx, t, tmp(t), true)
+  })
+
+db.version(6).stores(Object.fromEntries(MIGRATED_TABLES.map((t) => [t, null])))
+
+db.version(7)
+  .stores(MIGRATED)
+  .upgrade(async (tx) => {
+    for (const t of MIGRATED_TABLES) await copyRows(tx, tmp(t), t, false)
+  })
+
+db.version(8).stores(Object.fromEntries(MIGRATED_TABLES.map((t) => [tmp(t), null])))
+
 export function recordResponse(row: Omit<ResponseRow, 'id'>) {
-  return db.responses.add(row)
+  return db.responses.add({ ...row, id: newId() })
 }
 
 export async function startSession(minutes: SessionLength, timed: boolean): Promise<SessionRow> {
   const session: SessionRow = {
-    id: crypto.randomUUID(),
+    id: newId(),
     minutesPlanned: minutes,
     timed,
     startedAt: Date.now(),
@@ -118,18 +174,25 @@ export function endSession(id: string) {
 }
 
 export function addLcLog(row: Omit<LcLogRow, 'id' | 'ts'>) {
-  return db.lcLogs.add({ ...row, ts: Date.now() })
+  return db.lcLogs.add({ ...row, id: newId(), ts: Date.now() })
 }
 
-export function deleteLcLog(id: number) {
+export function deleteLcLog(id: string) {
   return db.lcLogs.delete(id)
 }
 
+/** Resolves to the new row's id once it is saved. */
 export function logRecommendation(row: Omit<RecommendationRow, 'id' | 'ts' | 'paramsVersion' | 'outcome'>) {
-  return db.recommendations.add({ ...row, ts: Date.now(), paramsVersion: PARAMS.version, outcome: null })
+  return db.recommendations.add({
+    ...row,
+    id: newId(),
+    ts: Date.now(),
+    paramsVersion: PARAMS.version,
+    outcome: null,
+  })
 }
 
-export function setRecommendationOutcome(id: number, outcome: RecOutcome) {
+export function setRecommendationOutcome(id: string, outcome: RecOutcome) {
   return db.recommendations.update(id, { outcome })
 }
 
@@ -143,7 +206,8 @@ export function clearAllProgress() {
   })
 }
 
-export const EXPORT_FORMAT = 'spar-export/1'
+/** v2: string (UUID) row ids. */
+export const EXPORT_FORMAT = 'spar-export/2'
 
 /** Everything on this device as one JSON-ready object, for backups and Phase 9 scripts. */
 export async function exportAllData() {

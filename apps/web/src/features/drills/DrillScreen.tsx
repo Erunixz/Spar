@@ -52,11 +52,11 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionSta
   const [timedOut, setTimedOut] = useState(false)
   // Counted here too because sessionStats can lag the answer just saved.
   const [answeredHere, setAnsweredHere] = useState(0)
-  const [lcTask, setLcTask] = useState<{ rec: LcRecommendation; shownAt: number; recId: Promise<number> } | null>(
+  const [lcTask, setLcTask] = useState<{ rec: LcRecommendation; shownAt: number; recId: Promise<string> } | null>(
     null,
   )
   // Id of the logged recommendation for the drill on screen (Phase 9 data).
-  const drillRecId = useRef<Promise<number> | null>(null)
+  const drillRecId = useRef<Promise<string> | null>(null)
   const loggedPick = useRef<Pick | null>(null)
   // One LeetCode problem per session, even if this screen remounts.
   const [lcOffered, setLcOffered] = useState(() => lcLogs.some((l) => l.sessionId === session.id))
