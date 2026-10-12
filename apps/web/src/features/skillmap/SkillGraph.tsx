@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { content, LAYERS, type Layer, type Pattern } from '../../content'
 import { exportAllData } from '../../db'
 import type { PatternSkill, SkillState } from '../../engine/skill'
 import { ratingGap, type ComfortRating } from '../../engine/survey'
+import { buildCardData, type CardData } from '../share/cardData'
+import { ShareDialog } from '../share/ShareDialog'
+import { masteryTier, type MasteryTier } from './tier'
 
 const LAYER_LABEL: Record<Layer, string> = {
   foundations: 'Foundations',
@@ -10,12 +14,14 @@ const LAYER_LABEL: Record<Layer, string> = {
   advanced: 'Advanced',
 }
 
-function tone(skill: PatternSkill) {
-  if (skill.attempts === 0 && skill.lcLogged === 0) return { bar: 'bg-slate-400', text: 'text-slate-400' }
-  if (skill.mastery < 40) return { bar: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400' }
-  if (skill.mastery < 70) return { bar: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' }
-  return { bar: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' }
+const TONE: Record<MasteryTier, { bar: string; text: string }> = {
+  none: { bar: 'bg-slate-400', text: 'text-slate-400' },
+  low: { bar: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400' },
+  mid: { bar: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' },
+  high: { bar: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
 }
+
+const tone = (skill: PatternSkill) => TONE[masteryTier(skill)]
 
 function PatternCard({
   pattern,
@@ -102,6 +108,7 @@ interface Props {
 }
 
 export function SkillGraph({ skills, selfRatings, lcSolvedTotal, onRetakeSurvey, onReset }: Props) {
+  const [shareData, setShareData] = useState<CardData | null>(null)
   const all = [...skills.patterns.values()]
   const attempts = all.reduce((n, s) => n + s.attempts, 0)
   const correct = all.reduce((n, s) => n + s.correct, 0)
@@ -121,6 +128,13 @@ export function SkillGraph({ skills, selfRatings, lcSolvedTotal, onRetakeSurvey,
           <Stat label="Accuracy" value={attempts ? `${Math.round((correct / attempts) * 100)}%` : '—'} />
           <Stat label="Drill items solved" value={`${solved}/${content.items.length}`} />
           <Stat label="LeetCode solved" value={lcSolvedTotal} />
+          <button
+            type="button"
+            onClick={() => setShareData(buildCardData(content.patterns, skills, lcSolvedTotal, new Date()))}
+            className="self-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            Share image
+          </button>
         </div>
       </div>
 
@@ -164,6 +178,8 @@ export function SkillGraph({ skills, selfRatings, lcSolvedTotal, onRetakeSurvey,
           </>
         )}
       </div>
+
+      {shareData && <ShareDialog data={shareData} onClose={() => setShareData(null)} />}
     </div>
   )
 }
