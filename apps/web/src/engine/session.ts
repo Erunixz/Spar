@@ -56,14 +56,15 @@ export function summarizeSession(
   responses: SessionResponse[],
   sessionId: string,
   lcLogs: LcLogEvent[] = [],
+  priors: Map<string, number> = new Map(),
 ): SessionSummary {
   const mine = responses.filter((r) => r.sessionId === sessionId)
   const startedAt = mine.length ? Math.min(...mine.map((r) => r.ts)) : Infinity
   const earlier = responses.filter((r) => r.sessionId !== sessionId && r.ts < startedAt)
   // LeetCode logs from before the session form part of both baselines.
   const lcEarlier = lcLogs.filter((l) => l.ts < startedAt)
-  const before = computeSkills(patternIds, itemsById, earlier, lcEarlier).patterns
-  const after = computeSkills(patternIds, itemsById, [...earlier, ...mine], lcEarlier).patterns
+  const before = computeSkills(patternIds, itemsById, earlier, lcEarlier, priors).patterns
+  const after = computeSkills(patternIds, itemsById, [...earlier, ...mine], lcEarlier, priors).patterns
 
   const counts = new Map<string, { attempts: number; correct: number }>()
   for (const r of mine) {

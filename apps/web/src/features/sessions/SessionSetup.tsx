@@ -5,18 +5,34 @@ import { PARAMS } from '../../engine/params'
 import { practiceNeed, recommendLeetCode } from '../../engine/recommend'
 import { SESSION_LENGTHS, type SessionLength } from '../../engine/session'
 import type { SkillState } from '../../engine/skill'
+import type { ComfortRating } from '../../engine/survey'
 import { LcRecCard } from '../recommend/LcRecCard'
 
 interface Props {
   skills: SkillState
   lcLogs: LcLogRow[]
+  selfRatings: Map<string, ComfortRating>
   /** Fixed per page load so recommendations don't reshuffle on every render. */
   now: number
+  /** Existing users who have neither taken nor skipped the comfort survey. */
+  showSurveyBanner: boolean
+  onTakeSurvey: () => void
+  onDismissSurvey: () => void
   onStart: (minutes: SessionLength, timed: boolean) => void
   onLogProblem: (slug: string) => void
 }
 
-export function SessionSetup({ skills, lcLogs, now, onStart, onLogProblem }: Props) {
+export function SessionSetup({
+  skills,
+  lcLogs,
+  selfRatings,
+  now,
+  showSurveyBanner,
+  onTakeSurvey,
+  onDismissSurvey,
+  onStart,
+  onLogProblem,
+}: Props) {
   const [minutes, setMinutes] = useState<SessionLength>(10)
   const [timed, setTimed] = useState(false)
 
@@ -28,14 +44,39 @@ export function SessionSetup({ skills, lcLogs, now, onStart, onLogProblem }: Pro
 
   const recs = useMemo(
     () =>
-      recommendLeetCode(content.lcCatalog, lcLogs, { skills, patternsById: content.patternsById, now }, {
+      recommendLeetCode(content.lcCatalog, lcLogs, { skills, patternsById: content.patternsById, now, selfRatings }, {
         random: () => 0,
       }),
-    [skills, lcLogs, now],
+    [skills, lcLogs, now, selfRatings],
   )
 
   return (
     <div className="mx-auto max-w-xl space-y-8">
+      {showSurveyBanner && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-900 dark:bg-indigo-950/50">
+          <p className="text-sm">
+            <span className="font-semibold">New:</span> tell Spar how comfortable you feel with each topic (about a
+            minute) so recommendations start in the right place.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onTakeSurvey}
+              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700"
+            >
+              Take the survey
+            </button>
+            <button
+              type="button"
+              onClick={onDismissSurvey}
+              className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-indigo-100 dark:text-slate-400 dark:hover:bg-indigo-900"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
+
       <div>
         <h2 className="text-2xl font-bold">How much time do you have?</h2>
         <p className="mt-1 text-slate-500 dark:text-slate-400">

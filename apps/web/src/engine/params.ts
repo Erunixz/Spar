@@ -7,7 +7,7 @@
  * produced them.
  */
 export const PARAMS = {
-  version: 'v1-handset-2026-10-11',
+  version: 'v2-handset-2026-10-11',
 
   elo: {
     /** Prior standard deviation of ability before any evidence. */
@@ -50,6 +50,19 @@ export const PARAMS = {
   select: {
     /** Don't repeat any of the last few drill items while others are available. */
     recentExclude: 8,
+  },
+
+  survey: {
+    /**
+     * Comfort rating (1 never seen it .. 5 comfortable with hards) -> starting
+     * theta. The prior SD stays elo.priorSd, so a few real answers override a
+     * wrong self-assessment.
+     */
+    ratingTheta: { 1: -1.5, 2: -0.75, 3: 0, 4: 0.75, 5: 1.5 },
+    /** Flag a pattern when measured mastery is this far from what its rating implies... */
+    gapMastery: 25,
+    /** ...once it has at least this many drill answers and LeetCode logs. */
+    gapMinEvidence: 5,
   },
 
   session: {

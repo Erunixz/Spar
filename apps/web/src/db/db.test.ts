@@ -58,12 +58,29 @@ describe('UUID migration (v4 -> v8)', () => {
     expect(rec!.id).toMatch(UUID)
 
     expect(await db.sessions.get('s-1')).toMatchObject({ minutesPlanned: 10, endedAt: 9 })
-    expect(db.tables.map((t) => t.name).sort()).toEqual(['lcLogs', 'recommendations', 'responses', 'sessions'])
+    expect(db.tables.map((t) => t.name).sort()).toEqual(['lcLogs', 'recommendations', 'responses', 'selfRatings', 'sessions', 'settings'])
 
     // Indexes still work and new rows get UUIDs too.
     expect(await db.responses.where('sessionId').equals('s-1').count()).toBe(2)
     const newId = await recordResponse({ itemId: 'pat-003', choice: 'x', correct: false, latencyMs: 5, sessionId: 's-2', ts: 5 })
     expect(newId).toMatch(UUID)
+  })
+
+  it('saves a survey as one row per pattern and records its status', async () => {
+    const { db, saveSurvey, skipSurvey, exportAllData } = await import('./index')
+    await skipSurvey()
+    expect((await db.settings.get('survey'))?.value.status).toBe('skipped')
+
+    await saveSurvey(new Map<string, 1 | 2 | 3 | 4 | 5 | null>([['two-pointers', 4], ['heap', null]]))
+    const rows = await db.selfRatings.toArray()
+    expect(rows).toHaveLength(2)
+    expect(new Set(rows.map((r) => r.surveyId)).size).toBe(1)
+    expect(rows.find((r) => r.patternId === 'heap')?.rating).toBeNull()
+    expect((await db.settings.get('survey'))?.value.status).toBe('done')
+
+    const data = await exportAllData()
+    expect(data.format).toBe('spar-export/3')
+    expect(data.selfRatings).toHaveLength(2)
     db.close()
   })
 })

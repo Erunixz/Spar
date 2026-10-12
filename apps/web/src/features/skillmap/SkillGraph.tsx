@@ -1,6 +1,7 @@
 import { content, LAYERS, type Layer, type Pattern } from '../../content'
 import { exportAllData } from '../../db'
 import type { PatternSkill, SkillState } from '../../engine/skill'
+import { ratingGap, type ComfortRating } from '../../engine/survey'
 
 const LAYER_LABEL: Record<Layer, string> = {
   foundations: 'Foundations',
@@ -16,7 +17,16 @@ function tone(skill: PatternSkill) {
   return { bar: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' }
 }
 
-function PatternCard({ pattern, skill }: { pattern: Pattern; skill: PatternSkill }) {
+function PatternCard({
+  pattern,
+  skill,
+  selfRating,
+}: {
+  pattern: Pattern
+  skill: PatternSkill
+  selfRating: ComfortRating | undefined
+}) {
+  const gap = ratingGap(skill, selfRating)
   const t = tone(skill)
   const [lo, hi] = skill.band
   const started = skill.attempts > 0 || skill.lcLogged > 0
@@ -25,7 +35,14 @@ function PatternCard({ pattern, skill }: { pattern: Pattern; skill: PatternSkill
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold leading-tight">{pattern.name}</h3>
+        <div className="space-y-1">
+          <h3 className="font-semibold leading-tight">{pattern.name}</h3>
+          {selfRating !== undefined && (
+            <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              You: {selfRating}/5
+            </span>
+          )}
+        </div>
         <span className={`text-2xl font-bold tabular-nums ${t.text}`}>
           {started ? Math.round(skill.mastery) : '—'}
         </span>
@@ -61,8 +78,15 @@ function PatternCard({ pattern, skill }: { pattern: Pattern; skill: PatternSkill
           ? `Drills: ${skill.attempts} answered · ${Math.round((skill.recentAccuracy ?? 0) * 100)}% recent · ${((skill.medianLatencyMs ?? 0) / 1000).toFixed(1)}s median`
           : started
             ? 'No drills yet'
-            : 'Not practiced yet'}
+            : selfRating !== undefined
+              ? 'Starting estimate from your rating'
+              : 'Not practiced yet'}
       </p>
+      {gap && (
+        <p className="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-800 dark:bg-amber-950/60 dark:text-amber-200">
+          You rated this {gap.rating}/5 (about {Math.round(gap.expected)}); you measure {Math.round(gap.measured)}.
+        </p>
+      )}
       {prereqs.length > 0 && <p className="text-xs text-slate-400 dark:text-slate-500">Builds on {prereqs.join(', ')}</p>}
     </div>
   )
@@ -70,12 +94,14 @@ function PatternCard({ pattern, skill }: { pattern: Pattern; skill: PatternSkill
 
 interface Props {
   skills: SkillState
+  selfRatings: Map<string, ComfortRating>
+  onRetakeSurvey: () => void
   /** Distinct LeetCode problems solved; summed per pattern would double-count multi-tag problems. */
   lcSolvedTotal: number
   onReset: () => void
 }
 
-export function SkillGraph({ skills, lcSolvedTotal, onReset }: Props) {
+export function SkillGraph({ skills, selfRatings, lcSolvedTotal, onRetakeSurvey, onReset }: Props) {
   const all = [...skills.patterns.values()]
   const attempts = all.reduce((n, s) => n + s.attempts, 0)
   const correct = all.reduce((n, s) => n + s.correct, 0)
@@ -108,27 +134,36 @@ export function SkillGraph({ skills, lcSolvedTotal, onReset }: Props) {
             </h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {patterns.map((p) => (
-                <PatternCard key={p.id} pattern={p} skill={skills.patterns.get(p.id)!} />
+                <PatternCard key={p.id} pattern={p} skill={skills.patterns.get(p.id)!} selfRating={selfRatings.get(p.id)} />
               ))}
             </div>
           </section>
         )
       })}
 
-      {(attempts > 0 || all.some((s) => s.lcLogged > 0)) && (
-        <div className="flex flex-wrap gap-6 text-sm">
-          <button
-            type="button"
-            onClick={() => void downloadExport()}
-            className="text-slate-500 underline hover:text-slate-900 dark:hover:text-slate-100"
-          >
-            Export my data (JSON)
-          </button>
-          <button type="button" onClick={onReset} className="text-slate-400 underline hover:text-rose-600">
-            Reset all progress
-          </button>
-        </div>
-      )}
+      <div className="flex flex-wrap gap-6 text-sm">
+        <button
+          type="button"
+          onClick={onRetakeSurvey}
+          className="text-slate-500 underline hover:text-slate-900 dark:hover:text-slate-100"
+        >
+          {selfRatings.size > 0 ? 'Retake comfort survey' : 'Take comfort survey'}
+        </button>
+        {(attempts > 0 || all.some((s) => s.lcLogged > 0) || selfRatings.size > 0) && (
+          <>
+            <button
+              type="button"
+              onClick={() => void downloadExport()}
+              className="text-slate-500 underline hover:text-slate-900 dark:hover:text-slate-100"
+            >
+              Export my data (JSON)
+            </button>
+            <button type="button" onClick={onReset} className="text-slate-400 underline hover:text-rose-600">
+              Reset all progress
+            </button>
+          </>
+        )}
+      </div>
     </div>
   )
 }

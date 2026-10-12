@@ -1,15 +1,17 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { content } from './content'
-import { clearAllProgress, db, endSession, startSession, type SessionRow } from './db'
+import { clearAllProgress, db, endSession, skipSurvey, startSession, type SessionRow } from './db'
 import { bestOutcome, isSolved, type LcOutcome } from './engine/lc'
 import type { SessionLength } from './engine/session'
 import { computeSkills } from './engine/skill'
+import { latestRatings, priorsFromRatings } from './engine/survey'
 import { DrillScreen } from './features/drills/DrillScreen'
 import { LcLogScreen } from './features/lclog/LcLogScreen'
 import { SessionSetup } from './features/sessions/SessionSetup'
 import { SessionSummary } from './features/sessions/SessionSummary'
 import { SkillGraph } from './features/skillmap/SkillGraph'
+import { SurveyScreen } from './features/survey/SurveyScreen'
 
 type Tab = 'practice' | 'log' | 'skills'
 
@@ -25,17 +27,25 @@ export default function App() {
   const [openedAt] = useState(() => Date.now())
   const responses = useLiveQuery(() => db.responses.orderBy('ts').toArray(), [])
   const lcLogs = useLiveQuery(() => db.lcLogs.orderBy('ts').toArray(), [])
-  const loaded = responses !== undefined && lcLogs !== undefined
+  const ratingRows = useLiveQuery(() => db.selfRatings.toArray(), [])
+  // null = never answered or skipped; undefined = still loading.
+  const surveyStatus = useLiveQuery(async () => (await db.settings.get('survey'))?.value ?? null, [])
+  const loaded = responses !== undefined && lcLogs !== undefined && ratingRows !== undefined && surveyStatus !== undefined
+  const [retakeSurvey, setRetakeSurvey] = useState(false)
 
   // A session left open by a closed tab or reload can't be resumed; close it.
   useEffect(() => {
     void db.sessions.filter((s) => s.endedAt === null).modify({ endedAt: Date.now() })
   }, [])
 
+  const selfRatings = useMemo(() => latestRatings(ratingRows ?? []), [ratingRows])
+  const priors = useMemo(() => priorsFromRatings(selfRatings), [selfRatings])
   const skills = useMemo(
-    () => computeSkills(patternIds, content.itemsById, responses ?? [], lcLogs ?? []),
-    [responses, lcLogs],
+    () => computeSkills(patternIds, content.itemsById, responses ?? [], lcLogs ?? [], priors),
+    [responses, lcLogs, priors],
   )
+  // Brand-new users see the survey first; existing users get a banner instead.
+  const firstRun = loaded && surveyStatus === null && responses.length === 0 && lcLogs.length === 0
   const lcSolvedTotal = useMemo(() => {
     const best = new Map<string, LcOutcome>()
     for (const l of lcLogs ?? []) best.set(l.slug, best.has(l.slug) ? bestOutcome(best.get(l.slug)!, l.outcome) : l.outcome)
@@ -60,7 +70,7 @@ export default function App() {
   }, [active])
 
   async function resetProgress() {
-    if (window.confirm('Delete every saved answer and LeetCode log on this device? This cannot be undone.')) {
+    if (window.confirm('Delete every saved answer, LeetCode log and survey rating on this device? This cannot be undone.')) {
       await clearAllProgress()
       setFinished(null)
     }
@@ -75,6 +85,7 @@ export default function App() {
         skills={skills}
         recentItemIds={recentItemIds}
         lcLogs={lcLogs}
+        selfRatings={selfRatings}
         session={active}
         sessionStats={sessionStats}
         onEnd={finish}
@@ -87,6 +98,8 @@ export default function App() {
         responses={responses}
         lcLogs={lcLogs}
         skills={skills}
+        priors={priors}
+        selfRatings={selfRatings}
         now={openedAt}
         onAgain={() => setFinished(null)}
         onViewSkills={() => setTab('skills')}
@@ -97,7 +110,11 @@ export default function App() {
       <SessionSetup
         skills={skills}
         lcLogs={lcLogs}
+        selfRatings={selfRatings}
         now={openedAt}
+        showSurveyBanner={surveyStatus === null}
+        onTakeSurvey={() => setRetakeSurvey(true)}
+        onDismissSurvey={() => void skipSurvey()}
         onStart={begin}
         onLogProblem={(slug) => {
           setLogPrefill({ slug, key: Date.now() })
@@ -140,14 +157,26 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8">
-        {tab === 'practice' ? (
+        {loaded && (firstRun || retakeSurvey) ? (
+          <SurveyScreen
+            initial={selfRatings}
+            mode={firstRun ? 'first' : 'retake'}
+            onClose={() => setRetakeSurvey(false)}
+          />
+        ) : tab === 'practice' ? (
           practice
         ) : !loaded ? (
           <p className="text-slate-500">Loading…</p>
         ) : tab === 'log' ? (
           <LcLogScreen key={logPrefill?.key} logs={lcLogs} initialInput={logPrefill?.slug} />
         ) : (
-          <SkillGraph skills={skills} lcSolvedTotal={lcSolvedTotal} onReset={resetProgress} />
+          <SkillGraph
+            skills={skills}
+            selfRatings={selfRatings}
+            lcSolvedTotal={lcSolvedTotal}
+            onRetakeSurvey={() => setRetakeSurvey(true)}
+            onReset={resetProgress}
+          />
         )}
       </main>
     </div>

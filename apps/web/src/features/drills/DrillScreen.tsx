@@ -12,6 +12,7 @@ import { formatReason, recommendLeetCodeDetailed, type LcRecommendation, type Re
 import { pickNextItem, type Pick } from '../../engine/select'
 import { isSessionOver, remainingSeconds } from '../../engine/session'
 import type { SkillState } from '../../engine/skill'
+import type { ComfortRating } from '../../engine/survey'
 import { LcTaskCard, type LcTaskResult } from '../recommend/LcTaskCard'
 import { formatClock, useNow } from '../sessions/useNow'
 import { Prompt } from './Prompt'
@@ -20,6 +21,7 @@ interface Props {
   skills: SkillState
   recentItemIds: string[]
   lcLogs: LcLogRow[]
+  selfRatings: Map<string, ComfortRating>
   session: SessionRow
   /** Answers so far in this session, from the response log. */
   sessionStats: { answered: number; correct: number }
@@ -36,10 +38,10 @@ function choiceLabel(item: Item, choice: string) {
   return item.type === 'pattern' ? patternName(choice) : choice
 }
 
-export function DrillScreen({ skills, recentItemIds, lcLogs, session, sessionStats, onEnd }: Props) {
+export function DrillScreen({ skills, recentItemIds, lcLogs, selfRatings, session, sessionStats, onEnd }: Props) {
   const ctxAt = useCallback(
-    (time: number): RecContext => ({ skills, patternsById: content.patternsById, now: time }),
-    [skills],
+    (time: number): RecContext => ({ skills, patternsById: content.patternsById, now: time, selfRatings }),
+    [skills, selfRatings],
   )
   const [pick, setPick] = useState<Pick | null>(() => {
     const time = Date.now()

@@ -6,6 +6,7 @@ Find the interview patterns you're weakest at, then spend whatever time you have
 
 ## What works today
 
+- **Comfort survey:** rate each topic from 1 (never seen it) to 5 (comfortable with hards). Ratings set each pattern's starting estimate, so recommendations are personal from the first minute; real answers take over within a few questions, and the skill graph flags ratings that disagree with what you measure. New users see it on their first visit; retake it from the skill graph.
 - **Time-boxed sessions:** pick 10, 30 or 60 minutes (or no limit). Each item is chosen for your weakest patterns and to fit the time left, and the session ends with a summary of how each pattern moved.
 - **Timed mode:** a per-item countdown, like an online assessment; running out counts as a miss.
 - **Pattern drills:** read an original problem description, name the pattern (or the Big-O), get instant feedback with the signal phrases that give it away. Keys `1`–`4` answer, `Enter` moves on.

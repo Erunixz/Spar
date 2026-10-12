@@ -23,7 +23,8 @@ export interface Rating {
   info: number
 }
 
-export const initialRating = (): Rating => ({ theta: 0, n: 0, info: 0 })
+/** A rating with no evidence yet. theta0 is the prior mean (0, or from the comfort survey). */
+export const initialRating = (theta0 = 0): Rating => ({ theta: theta0, n: 0, info: 0 })
 
 export function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-x))

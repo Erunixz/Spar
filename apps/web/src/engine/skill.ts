@@ -60,14 +60,16 @@ type TimelineEvent = { kind: 'drill'; event: ResponseEvent } | { kind: 'lc'; eve
 /**
  * Rebuilds skill state by replaying drill responses and LeetCode logs in time
  * order. Deterministic, so the stored rows are the single source of truth.
+ * priors sets a pattern's starting theta (from the comfort survey); others start at 0.
  */
 export function computeSkills(
   patternIds: string[],
   itemsById: Map<string, Item>,
   responses: ResponseEvent[],
   lcLogs: LcLogEvent[] = [],
+  priors: Map<string, number> = new Map(),
 ): SkillState {
-  const ratings = new Map<string, Rating>(patternIds.map((id) => [id, initialRating()]))
+  const ratings = new Map<string, Rating>(patternIds.map((id) => [id, initialRating(priors.get(id) ?? 0)]))
   const itemDifficulty = new Map<string, number>()
   for (const item of itemsById.values()) itemDifficulty.set(item.id, DIFFICULTY_PRIOR[item.difficulty])
 

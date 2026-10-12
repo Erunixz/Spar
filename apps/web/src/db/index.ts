@@ -3,6 +3,7 @@ import type { LcLogEvent, LcOutcome } from '../engine/lc'
 import { PARAMS } from '../engine/params'
 import type { CandidateScore, RecFeatures } from '../engine/recommend'
 import type { SessionLength } from '../engine/session'
+import type { ComfortRating, SelfRatingEvent } from '../engine/survey'
 
 /**
  * Row ids are UUIDs generated on the device, so rows from several devices can
@@ -79,6 +80,22 @@ export interface RecommendationRow {
   outcome: RecOutcome | null
 }
 
+/** One answer in one comfort survey. Append-only, so retakes keep the history. */
+export interface SelfRatingRow extends SelfRatingEvent {
+  id: string
+  /** Groups the rows saved together by one survey submission. */
+  surveyId: string
+  paramsVersion: string
+}
+
+export type SurveyStatus = { status: 'done' | 'skipped'; ts: number }
+
+/** Small key-value store for app state that should sync with the account later. */
+export interface SettingRow {
+  key: 'survey'
+  value: SurveyStatus
+}
+
 export const DB_NAME = 'spar'
 
 export const db = new Dexie(DB_NAME) as Dexie & {
@@ -86,6 +103,8 @@ export const db = new Dexie(DB_NAME) as Dexie & {
   sessions: EntityTable<SessionRow, 'id'>
   lcLogs: EntityTable<LcLogRow, 'id'>
   recommendations: EntityTable<RecommendationRow, 'id'>
+  selfRatings: EntityTable<SelfRatingRow, 'id'>
+  settings: EntityTable<SettingRow, 'key'>
 }
 
 db.version(1).stores({
@@ -153,6 +172,12 @@ db.version(7)
 
 db.version(8).stores(Object.fromEntries(MIGRATED_TABLES.map((t) => [tmp(t), null])))
 
+// v9: comfort survey ratings and a settings table. Additive.
+db.version(9).stores({
+  selfRatings: 'id, patternId, ts, surveyId',
+  settings: 'key',
+})
+
 export function recordResponse(row: Omit<ResponseRow, 'id'>) {
   return db.responses.add({ ...row, id: newId() })
 }
@@ -196,26 +221,53 @@ export function setRecommendationOutcome(id: string, outcome: RecOutcome) {
   return db.recommendations.update(id, { outcome })
 }
 
-/** Deletes everything stored on this device. */
-export function clearAllProgress() {
-  return db.transaction('rw', [db.responses, db.sessions, db.lcLogs, db.recommendations], async () => {
-    await db.responses.clear()
-    await db.sessions.clear()
-    await db.lcLogs.clear()
-    await db.recommendations.clear()
+/**
+ * Saves one survey submission: a row for every pattern shown (null = "not
+ * sure"), all with the same surveyId and timestamp, and marks the survey done.
+ */
+export function saveSurvey(answers: Map<string, ComfortRating | null>) {
+  const surveyId = newId()
+  const ts = Date.now()
+  const rows: SelfRatingRow[] = [...answers].map(([patternId, rating]) => ({
+    id: newId(),
+    surveyId,
+    patternId,
+    rating,
+    ts,
+    paramsVersion: PARAMS.version,
+  }))
+  return db.transaction('rw', db.selfRatings, db.settings, async () => {
+    await db.selfRatings.bulkAdd(rows)
+    await db.settings.put({ key: 'survey', value: { status: 'done', ts } })
   })
 }
 
-/** v2: string (UUID) row ids. */
-export const EXPORT_FORMAT = 'spar-export/2'
+/** Records that the user skipped the survey, so it isn't shown again automatically. */
+export function skipSurvey() {
+  return db.settings.put({ key: 'survey', value: { status: 'skipped', ts: Date.now() } })
+}
+
+const ALL_TABLES = () => [db.responses, db.sessions, db.lcLogs, db.recommendations, db.selfRatings, db.settings]
+
+/** Deletes everything stored on this device. */
+export function clearAllProgress() {
+  return db.transaction('rw', ALL_TABLES(), async () => {
+    for (const t of ALL_TABLES()) await t.clear()
+  })
+}
+
+/** v3: adds selfRatings and settings. */
+export const EXPORT_FORMAT = 'spar-export/3'
 
 /** Everything on this device as one JSON-ready object, for backups and Phase 9 scripts. */
 export async function exportAllData() {
-  const [responses, sessions, lcLogs, recommendations] = await Promise.all([
+  const [responses, sessions, lcLogs, recommendations, selfRatings, settings] = await Promise.all([
     db.responses.toArray(),
     db.sessions.toArray(),
     db.lcLogs.toArray(),
     db.recommendations.toArray(),
+    db.selfRatings.toArray(),
+    db.settings.toArray(),
   ])
   return {
     format: EXPORT_FORMAT,
@@ -225,5 +277,7 @@ export async function exportAllData() {
     sessions,
     lcLogs,
     recommendations,
+    selfRatings,
+    settings,
   }
 }

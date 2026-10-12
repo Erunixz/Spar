@@ -3,6 +3,7 @@ import { pCorrect } from './elo'
 import { bestOutcome, LC_DIFFICULTY_PRIOR, type LcLogEvent, type LcOutcome } from './lc'
 import { PARAMS } from './params'
 import type { PatternSkill, SkillState } from './skill'
+import type { ComfortRating } from './survey'
 
 /**
  * Ranking v1: rules on top of the skill engine, shared by drill items and
@@ -15,6 +16,8 @@ export interface RecContext {
   skills: SkillState
   patternsById: Map<string, Pattern>
   now: number
+  /** Latest comfort-survey rating per pattern, if any. */
+  selfRatings?: Map<string, ComfortRating>
 }
 
 // Tunable values live in params.ts; see the comments there.
@@ -60,6 +63,8 @@ export interface RecFeatures {
   evidence: boolean
   fading: boolean
   weakPrereq: boolean
+  /** The user's comfort rating for the target pattern, or null. */
+  selfRating: number | null
 }
 
 /** A candidate's base score (before noise), for recovering selection propensities later. */
@@ -105,8 +110,9 @@ export function scoreCandidate(patternIds: string[], b: number, ctx: RecContext)
   const evidence = hasEvidence(target)
   const fading = isFading(target, ctx.now)
   const weakPrereq = weakPrerequisites(target.patternId, ctx).length > 0
+  const selfRating = ctx.selfRatings?.get(target.patternId) ?? null
 
-  if (!evidence) reasons.push('not practiced yet')
+  if (!evidence) reasons.push(selfRating === null ? 'not practiced yet' : `not practiced yet, you rated it ${selfRating}/5`)
   else if (target.mastery < 40) reasons.push('low mastery')
   else if (target.se > 0.8) reasons.push('still uncertain')
   else reasons.push(`mastery ${Math.round(target.mastery)}`)
@@ -119,7 +125,7 @@ export function scoreCandidate(patternIds: string[], b: number, ctx: RecContext)
 
   return {
     score,
-    features: { need, p, miss, mastery: target.mastery, se: target.se, evidence, fading, weakPrereq },
+    features: { need, p, miss, mastery: target.mastery, se: target.se, evidence, fading, weakPrereq, selfRating },
     targetPattern: target.patternId,
     p,
     reasons,

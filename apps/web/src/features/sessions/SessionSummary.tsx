@@ -3,6 +3,7 @@ import type { LcLogRow, ResponseRow } from '../../db'
 import { recommendLeetCode } from '../../engine/recommend'
 import { summarizeSession } from '../../engine/session'
 import type { SkillState } from '../../engine/skill'
+import type { ComfortRating } from '../../engine/survey'
 import { LcRecCard } from '../recommend/LcRecCard'
 import { formatClock } from './useNow'
 
@@ -11,6 +12,8 @@ interface Props {
   responses: ResponseRow[]
   lcLogs: LcLogRow[]
   skills: SkillState
+  priors: Map<string, number>
+  selfRatings: Map<string, ComfortRating>
   now: number
   onAgain: () => void
   onViewSkills: () => void
@@ -18,9 +21,20 @@ interface Props {
 
 const patternIds = content.patterns.map((p) => p.id)
 
-export function SessionSummary({ sessionId, responses, lcLogs, skills, now, onAgain, onViewSkills }: Props) {
-  const s = summarizeSession(patternIds, content.itemsById, responses, sessionId, lcLogs)
-  const [nextUp] = recommendLeetCode(content.lcCatalog, lcLogs, { skills, patternsById: content.patternsById, now }, {
+export function SessionSummary({
+  sessionId,
+  responses,
+  lcLogs,
+  skills,
+  priors,
+  selfRatings,
+  now,
+  onAgain,
+  onViewSkills,
+}: Props) {
+  const s = summarizeSession(patternIds, content.itemsById, responses, sessionId, lcLogs, priors)
+  const ctx = { skills, patternsById: content.patternsById, now, selfRatings }
+  const [nextUp] = recommendLeetCode(content.lcCatalog, lcLogs, ctx, {
     count: 1,
     random: () => 0,
   })
