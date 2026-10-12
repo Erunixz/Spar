@@ -13,6 +13,7 @@ Find the interview patterns you're weakest at, then spend whatever time you have
 - **Recommendations:** every pick says why it was chosen ("Sliding Window: low mastery, not practiced in over a week"). One set of rules ranks both drills and LeetCode problems: weakness and uncertainty, a 60 to 75% predicted success band, a boost for patterns unpracticed for a week, a penalty while a prerequisite is weak, time fit, and freshness (no LeetCode repeat within a week; unaided solves return only as reviews). Sessions of 30+ minutes include one recommended LeetCode problem.
 - **LeetCode log:** paste a link, number or slug and say how it went (on your own, with hints, or after viewing the solution). Each problem counts once, by its best outcome; only unaided solves move mastery fully.
 - **Skill graph:** 14 patterns in 4 layers, each with an Elo-based mastery estimate, a 95% band, and LeetCode solved counts by difficulty. "Share image" turns it into a 1200x630 PNG card (download, copy or share) with your scores and totals and nothing personal.
+- **Visualize:** step through Python line by line in the browser, with the call stack, every variable (changes highlighted), printed output, and the current or failing line highlighted in the editor. Runs CPython (Pyodide) in a Web Worker, so code never touches the page or a server; runaway loops stop at 1,000 steps, and anything stuck in native code is killed after 10 seconds.
 - **Local-first:** answers are stored in IndexedDB on your device. No account, no server.
 
 ## How it works
@@ -24,7 +25,7 @@ Every tunable number (learning rates, priors, the target success band, ranking w
 ## Repo layout
 
 ```
-apps/web/     Vite + React + TypeScript app
+apps/web/     Vite + React + TypeScript app (src/workers: Pyodide worker and the Python tracer)
 apps/api/     Cloudflare Worker + D1 (Phase 5)
 content/      patterns.yaml, items/ (one YAML file per item) and lc_catalog.yaml, validated at build time
 ml/           training, evaluation, model cards (Phase 4)

@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { content } from './content'
 import { clearAllProgress, db, endSession, skipSurvey, startSession, type SessionRow } from './db'
 import { bestOutcome, isSolved, type LcOutcome } from './engine/lc'
@@ -13,7 +13,10 @@ import { SessionSummary } from './features/sessions/SessionSummary'
 import { SkillGraph } from './features/skillmap/SkillGraph'
 import { SurveyScreen } from './features/survey/SurveyScreen'
 
-type Tab = 'practice' | 'log' | 'skills'
+type Tab = 'practice' | 'log' | 'skills' | 'visualize'
+
+// Code-split: CodeMirror and the Pyodide worker load only when this tab opens.
+const VisualizerScreen = lazy(() => import('./features/visualizer/VisualizerScreen'))
 
 const patternIds = content.patterns.map((p) => p.id)
 
@@ -136,6 +139,7 @@ export default function App() {
                 ['practice', active ? 'Session ●' : 'Practice'],
                 ['log', 'LeetCode log'],
                 ['skills', 'Skill graph'],
+                ['visualize', 'Visualize'],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -165,6 +169,10 @@ export default function App() {
           />
         ) : tab === 'practice' ? (
           practice
+        ) : tab === 'visualize' ? (
+          <Suspense fallback={<p className="text-slate-500">Loading the visualizer…</p>}>
+            <VisualizerScreen />
+          </Suspense>
         ) : !loaded ? (
           <p className="text-slate-500">Loading…</p>
         ) : tab === 'log' ? (

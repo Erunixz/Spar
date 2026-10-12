@@ -1,0 +1,17 @@
+status: ok
+  0 L1 line | <module>()
+  1 L14 line | <module>()
+  2 L15 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56])
+  3 L2 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23)
+  4 L3 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=0, hi=7)
+  5 L4 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=0, hi=7)
+  6 L5 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=0, hi=7, mid=3)
+  7 L7 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=0, hi=7, mid=3)
+  8 L8 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=0, hi=7, mid=3)
+  9 L3 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=4, hi=7, mid=3)
+ 10 L4 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=4, hi=7, mid=3)
+ 11 L5 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=4, hi=7, mid=5)
+ 12 L6 line | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=4, hi=7, mid=5)
+ 13 L6 return -> 5 | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56]) > binary_search(nums=[2, 5, 8, 12, 16, 23, 38, 56], target=23, lo=4, hi=7, mid=5)
+ 14 L15 return -> None | <module>(nums=[2, 5, 8, 12, 16, 23, 38, 56])
+stdout: "5\n"
