@@ -1,0 +1,27 @@
+id: cx-026
+type: complexity
+difficulty: medium
+est_seconds: 55
+pattern_ids: [backtracking]
+prompt: |
+  What is the time complexity for n items?
+
+  ```python
+  def subsets(items):
+      out, current = [], []
+      def go(i):
+          if i == len(items):
+              out.append(current[:])
+              return
+          current.append(items[i])
+          go(i + 1)
+          current.pop()
+          go(i + 1)
+      go(0)
+      return out
+  ```
+choices: ["O(n^2)", "O(2^n)", "O(n * 2^n)", "O(n!)"]
+answer: "O(n * 2^n)"
+explanation: |
+  There are 2^n subsets (leaves), and copying each one into the output costs
+  up to O(n).

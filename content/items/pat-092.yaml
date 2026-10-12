@@ -1,0 +1,14 @@
+id: pat-092
+type: pattern
+difficulty: hard
+est_seconds: 70
+pattern_ids: [dynamic-programming]
+prompt: |
+  Items each have a weight and a value, and a bag holds at most W weight.
+  Choose items (each at most once) to maximize the total value.
+choices: [dynamic-programming, greedy, backtracking, heap]
+answer: dynamic-programming
+signals: [capacity, each item once, maximize value]
+explanation: |
+  Taking the best value-per-weight first fails when items can't be split.
+  best[w] over items, iterating w downwards, gives O(n * W).

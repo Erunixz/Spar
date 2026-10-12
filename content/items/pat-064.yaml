@@ -1,0 +1,14 @@
+id: pat-064
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [linked-list]
+prompt: |
+  Remove the k-th node from the end of a singly linked list in one pass,
+  without knowing its length.
+choices: [linked-list, arrays-hashing, binary-search, heap]
+answer: linked-list
+signals: [from the end, one pass, unknown length]
+explanation: |
+  Move a lead pointer k nodes ahead, then move both until the lead hits the
+  end; the trailing pointer is just before the node to remove. O(n).

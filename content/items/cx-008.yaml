@@ -1,0 +1,23 @@
+id: cx-008
+type: complexity
+difficulty: medium
+est_seconds: 45
+pattern_ids: [prefix-sum]
+prompt: |
+  What is the time complexity for a list of n numbers?
+
+  ```python
+  def count_k(nums, k):
+      count = {0: 1}
+      total = answer = 0
+      for x in nums:
+          total += x
+          answer += count.get(total - k, 0)
+          count[total] = count.get(total, 0) + 1
+      return answer
+  ```
+choices: ["O(n)", "O(n log n)", "O(n^2)", "O(n^3)"]
+answer: "O(n)"
+explanation: |
+  It counts every range with sum k, but never loops over ranges: one pass
+  with O(1) average map operations.

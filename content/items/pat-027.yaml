@@ -1,0 +1,15 @@
+id: pat-027
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [prefix-sum]
+prompt: |
+  Daily balance changes can be negative. Count the ranges of consecutive days
+  whose total change is divisible by k.
+choices: [prefix-sum, sliding-window, two-pointers, binary-search]
+answer: prefix-sum
+signals: [count ranges, divisible by k, negatives allowed]
+explanation: |
+  Two running totals with the same remainder mod k bound a range divisible
+  by k. Count remainders in a map as you go (normalize negative remainders).
+  O(n).

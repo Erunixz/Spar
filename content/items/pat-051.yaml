@@ -1,0 +1,14 @@
+id: pat-051
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [intervals]
+prompt: |
+  Given a person's meetings as (start, end) times, decide whether they can
+  attend all of them.
+choices: [intervals, heap, graphs, prefix-sum]
+answer: intervals
+signals: [start and end times, any overlap]
+explanation: |
+  Sort by start time and check that every meeting starts no earlier than the
+  previous one ends. O(n log n).

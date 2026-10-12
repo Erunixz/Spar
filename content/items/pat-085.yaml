@@ -1,0 +1,15 @@
+id: pat-085
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [backtracking]
+prompt: |
+  Decide whether a word can be traced in a grid of letters by moving between
+  horizontally or vertically adjacent cells, never using a cell twice in the
+  same word.
+choices: [backtracking, dynamic-programming, sliding-window, heap]
+answer: backtracking
+signals: [trace a path, no cell twice, undo when stuck]
+explanation: |
+  From each matching start cell, explore neighbours that match the next
+  letter, marking cells as used and unmarking them when backing out.

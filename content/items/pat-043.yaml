@@ -1,0 +1,15 @@
+id: pat-043
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [binary-search]
+prompt: |
+  A table's rows are each sorted, and every row starts with a value larger
+  than the last value of the row above. Decide whether a value is in the
+  table.
+choices: [binary-search, graphs, dynamic-programming, backtracking]
+answer: binary-search
+signals: [rows sorted, rows continue each other]
+explanation: |
+  Read row by row, the table is one long sorted list; binary search over
+  indices 0..rows*cols-1 and map each index to (row, col). O(log(rows*cols)).

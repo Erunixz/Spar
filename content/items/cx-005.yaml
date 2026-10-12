@@ -1,0 +1,21 @@
+id: cx-005
+type: complexity
+difficulty: easy
+est_seconds: 30
+pattern_ids: [arrays-hashing]
+prompt: |
+  What is the time complexity for a list of n numbers?
+
+  ```python
+  def has_duplicate(nums):
+      seen = set()
+      for x in nums:
+          if x in seen:
+              return True
+          seen.add(x)
+      return False
+  ```
+choices: ["O(1)", "O(log n)", "O(n)", "O(n^2)"]
+answer: "O(n)"
+explanation: |
+  One pass, and set lookups and inserts are O(1) on average.

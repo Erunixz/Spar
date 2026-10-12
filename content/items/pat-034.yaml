@@ -1,0 +1,14 @@
+id: pat-034
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [sliding-window]
+prompt: |
+  A shop has a year of daily sales. Find the highest total over any 7
+  consecutive days.
+choices: [sliding-window, binary-search, heap, backtracking]
+answer: sliding-window
+signals: [fixed-length block, consecutive days]
+explanation: |
+  Keep the sum of the current 7 days; each step adds the new day and
+  subtracts the day that left. O(n).

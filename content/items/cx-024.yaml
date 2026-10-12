@@ -1,0 +1,35 @@
+id: cx-024
+type: complexity
+difficulty: medium
+est_seconds: 60
+pattern_ids: [graphs]
+prompt: |
+  What is the time complexity for a grid with R rows and C columns?
+
+  ```python
+  from collections import deque
+
+  def count_islands(grid):
+      rows, cols = len(grid), len(grid[0])
+      seen = set()
+      islands = 0
+      for r in range(rows):
+          for c in range(cols):
+              if grid[r][c] == 1 and (r, c) not in seen:
+                  islands += 1
+                  seen.add((r, c))
+                  queue = deque([(r, c)])
+                  while queue:
+                      y, x = queue.popleft()
+                      for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                          if (0 <= ny < rows and 0 <= nx < cols
+                                  and grid[ny][nx] == 1 and (ny, nx) not in seen):
+                              seen.add((ny, nx))
+                              queue.append((ny, nx))
+      return islands
+  ```
+choices: ["O(R + C)", "O(R * C)", "O(R * C * log(R * C))", "O((R * C)^2)"]
+answer: "O(R * C)"
+explanation: |
+  The outer loops visit every cell, but each land cell enters the queue once
+  thanks to the seen set, and has at most 4 neighbours.

@@ -1,0 +1,15 @@
+id: pat-054
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [intervals]
+prompt: |
+  Remove the fewest bookings from a list so that the remaining bookings
+  don't overlap at all.
+choices: [intervals, dynamic-programming, backtracking, prefix-sum]
+answer: intervals
+signals: [remove fewest, no overlaps]
+explanation: |
+  Sort by end time and keep a booking whenever it starts after the last kept
+  one ends; everything else is removed. Keeping the earliest-finishing
+  booking leaves the most room. O(n log n).

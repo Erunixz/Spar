@@ -1,0 +1,14 @@
+id: pat-069
+type: pattern
+difficulty: medium
+est_seconds: 45
+pattern_ids: [trees]
+prompt: |
+  Return the values of a binary tree level by level: first the root, then
+  all nodes one step down from left to right, and so on.
+choices: [trees, heap, sliding-window, backtracking]
+answer: trees
+signals: [level by level, left to right]
+explanation: |
+  Breadth-first traversal with a queue, processing one level's worth of
+  nodes at a time. O(n).

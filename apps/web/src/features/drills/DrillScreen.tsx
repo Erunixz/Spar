@@ -178,7 +178,7 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, selfRatings, sessio
       if (!pick || lcTask || e.metaKey || e.ctrlKey || e.altKey) return
       if (chosen === null) {
         const idx = Number(e.key) - 1
-        const choice = pick.item.choices[idx]
+        const choice = pick.choices[idx]
         if (choice !== undefined) answer(choice)
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
@@ -263,7 +263,7 @@ export function DrillScreen({ skills, recentItemIds, lcLogs, selfRatings, sessio
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {item.choices.map((choice, i) => {
+        {pick.choices.map((choice, i) => {
           const state =
             chosen === null ? 'idle' : choice === item.answer ? 'right' : choice === chosen ? 'wrong' : 'dim'
           return (

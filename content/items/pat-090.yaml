@@ -1,0 +1,14 @@
+id: pat-090
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [dynamic-programming]
+prompt: |
+  Find the length of the longest strictly increasing subsequence of a list
+  of daily scores (the chosen days don't have to be consecutive).
+choices: [dynamic-programming, sliding-window, monotonic-stack, two-pointers]
+answer: dynamic-programming
+signals: [subsequence, not necessarily consecutive, longest]
+explanation: |
+  lis[i] = 1 + max(lis[j]) over earlier j with a smaller score: O(n^2). The
+  patience-sorting trick with binary search brings it to O(n log n).

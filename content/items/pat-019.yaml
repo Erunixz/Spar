@@ -1,0 +1,16 @@
+id: pat-019
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [arrays-hashing]
+prompt: |
+  Ticket numbers were handed out in no particular order. Find the length of
+  the longest run of consecutive numbers (like 41, 42, 43, 44) among them, in
+  O(n) time.
+choices: [arrays-hashing, sliding-window, dynamic-programming, heap]
+answer: arrays-hashing
+signals: [unsorted, consecutive values, O(n) rules out sorting]
+explanation: |
+  Sorting would cost O(n log n). Put every number in a set, and only start
+  counting from numbers whose predecessor is missing; each run is walked
+  once, so the total is O(n).

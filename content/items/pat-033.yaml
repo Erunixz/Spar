@@ -1,0 +1,15 @@
+id: pat-033
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [two-pointers]
+prompt: |
+  A skyline is a row of bars of different heights. After a storm, compute how
+  much rain water is trapped between the bars, using O(1) extra space.
+choices: [two-pointers, monotonic-stack, dynamic-programming, greedy]
+answer: two-pointers
+signals: [trapped between bars, O(1) extra space]
+explanation: |
+  A stack or prefix-max arrays also solve it, but both use O(n) space. With
+  pointers at both ends and the best height seen from each side, the side
+  with the lower max is settled first. O(n) time, O(1) space.

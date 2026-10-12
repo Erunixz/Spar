@@ -1,0 +1,15 @@
+id: pat-058
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [greedy]
+prompt: |
+  Each tile on a path lists how many tiles you may hop forward from it, and
+  the end is always reachable. Find the fewest hops needed to reach the last
+  tile.
+choices: [greedy, backtracking, binary-search, heap]
+answer: greedy
+signals: [fewest hops, furthest reach]
+explanation: |
+  Treat it as levels: within the current reach, track the furthest tile the
+  next hop can get to; when you pass the current reach, take a hop. O(n).

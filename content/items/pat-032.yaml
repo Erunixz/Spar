@@ -1,0 +1,16 @@
+id: pat-032
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [two-pointers]
+prompt: |
+  Two guest lists are each sorted by name. The first list has empty slots at
+  its end, exactly enough for the second. Merge them into the first list in
+  sorted order without using another array.
+choices: [two-pointers, heap, binary-search, sliding-window]
+answer: two-pointers
+signals: [two sorted lists, in place, spare room at the end]
+explanation: |
+  Fill from the back: compare the last real entries of both lists and write
+  the larger into the last free slot, so nothing is overwritten before it's
+  used. O(n + m).

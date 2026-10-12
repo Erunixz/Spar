@@ -1,0 +1,16 @@
+id: pat-081
+type: pattern
+difficulty: hard
+est_seconds: 70
+pattern_ids: [graphs]
+prompt: |
+  Turn one dictionary word into another by changing one letter at a time,
+  where every step must also be a dictionary word. Find the length of the
+  shortest such chain.
+choices: [graphs, dynamic-programming, backtracking, trees]
+answer: graphs
+signals: [one change per step, shortest chain]
+explanation: |
+  Words are nodes, single-letter changes are edges, and the shortest chain
+  is a breadth-first search. Exploring every chain with backtracking would
+  be exponential.

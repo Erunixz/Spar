@@ -1,0 +1,14 @@
+id: pat-018
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [arrays-hashing]
+prompt: |
+  Two apps each export a list of user IDs. Find the users who appear in both
+  lists.
+choices: [arrays-hashing, sliding-window, heap, dynamic-programming]
+answer: arrays-hashing
+signals: [appear in both, membership]
+explanation: |
+  Put one list in a hash set, then keep the IDs from the other list that are
+  in the set. O(n + m).

@@ -1,0 +1,14 @@
+id: pat-067
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [trees]
+prompt: |
+  Two family trees are stored as binary trees. Decide whether they have
+  exactly the same shape and the same name at every position.
+choices: [trees, graphs, arrays-hashing, dynamic-programming]
+answer: trees
+signals: [same shape, same values, recursive structure]
+explanation: |
+  Recurse on both roots together: both empty is a match, otherwise the
+  values must match and both subtrees must match. O(n).

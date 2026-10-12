@@ -1,0 +1,15 @@
+id: pat-030
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [two-pointers]
+prompt: |
+  Vertical posts of different heights stand in a row. Pick two posts so that
+  the area between them (the shorter post's height times the distance
+  between them) is as large as possible.
+choices: [two-pointers, binary-search, dynamic-programming, heap]
+answer: two-pointers
+signals: [pick two, distance between them, shorter one limits]
+explanation: |
+  Start with the widest pair and always move the shorter post inward: moving
+  the taller one can never help. O(n).

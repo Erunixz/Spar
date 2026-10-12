@@ -1,0 +1,14 @@
+id: pat-063
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [linked-list]
+prompt: |
+  Two linked lists of timestamps are each sorted. Splice them together into
+  one sorted linked list, reusing the existing nodes.
+choices: [linked-list, heap, binary-search, sliding-window]
+answer: linked-list
+signals: [two sorted lists, reuse the nodes]
+explanation: |
+  Use a dummy head and repeatedly attach the smaller front node, then attach
+  whatever remains. O(n + m), O(1) extra space.

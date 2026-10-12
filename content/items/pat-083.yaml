@@ -1,0 +1,14 @@
+id: pat-083
+type: pattern
+difficulty: medium
+est_seconds: 45
+pattern_ids: [backtracking]
+prompt: |
+  A test suite should try every possible combination of a set of feature
+  flags being on or off. List all the combinations.
+choices: [backtracking, dynamic-programming, greedy, sliding-window]
+answer: backtracking
+signals: [every combination, list them all]
+explanation: |
+  For each flag, choose on or off, recurse, then undo the choice. There are
+  2^n subsets, so listing them is inherently exponential.

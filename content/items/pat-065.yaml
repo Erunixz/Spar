@@ -1,0 +1,13 @@
+id: pat-065
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [linked-list]
+prompt: |
+  Find the middle node of a singly linked list in a single pass.
+choices: [linked-list, binary-search, arrays-hashing, monotonic-stack]
+answer: linked-list
+signals: [middle, single pass]
+explanation: |
+  Move a slow pointer one step and a fast pointer two steps; when the fast
+  one reaches the end, the slow one is in the middle. O(n), O(1) space.

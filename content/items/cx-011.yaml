@@ -1,0 +1,22 @@
+id: cx-011
+type: complexity
+difficulty: medium
+est_seconds: 40
+pattern_ids: [sliding-window]
+prompt: |
+  What is the time complexity for n days of sales and a window of k days?
+
+  ```python
+  def best_week(sales, k):
+      window = sum(sales[:k])
+      best = window
+      for i in range(k, len(sales)):
+          window += sales[i] - sales[i - k]
+          best = max(best, window)
+      return best
+  ```
+choices: ["O(k)", "O(n)", "O(n * k)", "O(n log k)"]
+answer: "O(n)"
+explanation: |
+  The first sum is O(k) and each later step is O(1), so O(k + n), which is
+  O(n) since k <= n. Re-summing every window would be O(n * k).

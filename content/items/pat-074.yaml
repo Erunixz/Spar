@@ -1,0 +1,14 @@
+id: pat-074
+type: pattern
+difficulty: medium
+est_seconds: 45
+pattern_ids: [heap]
+prompt: |
+  From a list of delivery addresses with coordinates, find the k closest to
+  the warehouse.
+choices: [heap, binary-search, two-pointers, graphs]
+answer: heap
+signals: [k closest, top k]
+explanation: |
+  Keep a max-heap of size k keyed by distance; replace the top when a closer
+  address appears. O(n log k). (Quickselect averages O(n).)

@@ -31,6 +31,33 @@ describe('repo content', () => {
     expect(content.patterns.filter((p) => !covered.has(p.id)).map((p) => p.id)).toEqual([])
   })
 
+  it('has a balanced bank: 120+ items, 6+ pattern and 2+ complexity items per pattern', () => {
+    const { patterns, items, catalog } = loadRepoContent()
+    const content = validateContent(patterns, items, catalog)
+    expect(content.items.length).toBeGreaterThanOrEqual(120)
+    const thin = content.patterns
+      .map((p) => {
+        const mine = content.items.filter((i) => i.pattern_ids.includes(p.id))
+        return {
+          id: p.id,
+          pattern: mine.filter((i) => i.type === 'pattern').length,
+          complexity: mine.filter((i) => i.type === 'complexity').length,
+        }
+      })
+      .filter((c) => c.pattern < 6 || c.complexity < 2)
+    expect(thin).toEqual([])
+  })
+
+  it('has no duplicate prompts and mixes difficulties', () => {
+    const { patterns, items, catalog } = loadRepoContent()
+    const content = validateContent(patterns, items, catalog)
+    const prompts = content.items.map((i) => i.prompt.replace(/\s+/g, ' ').trim().toLowerCase())
+    expect(new Set(prompts).size).toBe(prompts.length)
+    for (const d of ['easy', 'medium', 'hard'] as const) {
+      expect(content.items.filter((i) => i.difficulty === d).length).toBeGreaterThanOrEqual(10)
+    }
+  })
+
   it('covers every pattern with at least one item', () => {
     const { patterns, items } = loadRepoContent()
     const content = validateContent(patterns, items)

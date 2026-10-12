@@ -1,0 +1,15 @@
+id: pat-036
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [sliding-window]
+prompt: |
+  Check whether any rearrangement of a short word appears as a contiguous
+  block somewhere inside a long text.
+choices: [sliding-window, backtracking, trees, binary-search]
+answer: sliding-window
+signals: [any rearrangement, contiguous block, fixed length]
+explanation: |
+  Generating rearrangements would be factorial. Instead, slide a window of
+  the short word's length over the text and compare letter counts, updating
+  them in O(1) per step. O(n).

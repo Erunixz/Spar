@@ -1,0 +1,14 @@
+id: pat-052
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [intervals]
+prompt: |
+  A calendar holds non-overlapping bookings sorted by start time. Insert a
+  new booking and merge it with any bookings it overlaps.
+choices: [intervals, binary-search, heap, linked-list]
+answer: intervals
+signals: [sorted bookings, insert, merge overlaps]
+explanation: |
+  Copy bookings that end before the new one, merge every booking that
+  overlaps it into one, then copy the rest. O(n).

@@ -1,0 +1,14 @@
+id: pat-089
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [dynamic-programming]
+prompt: |
+  Given coin values (not necessarily standard ones) and an amount, find the
+  fewest coins that add up to exactly that amount.
+choices: [dynamic-programming, greedy, binary-search, heap]
+answer: dynamic-programming
+signals: [fewest, exact amount, arbitrary denominations]
+explanation: |
+  Always taking the biggest coin fails for coins like 1, 3, 4 and amount 6.
+  best[a] = 1 + min(best[a - c]) over coins c. O(amount * coins).

@@ -1,0 +1,24 @@
+id: cx-013
+type: complexity
+difficulty: easy
+est_seconds: 30
+pattern_ids: [monotonic-stack]
+prompt: |
+  What is the time complexity for a string of length n?
+
+  ```python
+  def balanced(s):
+      pairs = {')': '(', ']': '[', '}': '{'}
+      stack = []
+      for ch in s:
+          if ch in pairs:
+              if not stack or stack.pop() != pairs[ch]:
+                  return False
+          else:
+              stack.append(ch)
+      return not stack
+  ```
+choices: ["O(1)", "O(n)", "O(n log n)", "O(n^2)"]
+answer: "O(n)"
+explanation: |
+  Each character is handled once with O(1) push, pop and lookup.

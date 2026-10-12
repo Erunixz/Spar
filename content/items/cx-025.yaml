@@ -1,0 +1,32 @@
+id: cx-025
+type: complexity
+difficulty: medium
+est_seconds: 55
+pattern_ids: [graphs]
+prompt: |
+  What is the time complexity for V tasks and E dependencies?
+
+  ```python
+  from collections import deque
+
+  def order(n, edges):
+      indegree = [0] * n
+      graph = [[] for _ in range(n)]
+      for a, b in edges:
+          graph[a].append(b)
+          indegree[b] += 1
+      queue = deque(i for i in range(n) if indegree[i] == 0)
+      result = []
+      while queue:
+          node = queue.popleft()
+          result.append(node)
+          for nxt in graph[node]:
+              indegree[nxt] -= 1
+              if indegree[nxt] == 0:
+                  queue.append(nxt)
+      return result if len(result) == n else None
+  ```
+choices: ["O(V)", "O(V + E)", "O(V * E)", "O(V^2)"]
+answer: "O(V + E)"
+explanation: |
+  Every task is dequeued once and every dependency edge is relaxed once.

@@ -1,0 +1,16 @@
+id: pat-061
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [greedy]
+prompt: |
+  Children stand in a row, each with a rating. Give each child at least one
+  candy, and any child rated higher than a neighbour must get more candy than
+  that neighbour. Find the fewest candies in total.
+choices: [greedy, dynamic-programming, heap, graphs]
+answer: greedy
+signals: [constraints with both neighbours, minimum total]
+explanation: |
+  Pass left to right enforcing the left-neighbour rule, then right to left
+  enforcing the right-neighbour rule, keeping the larger value at each
+  child. O(n).

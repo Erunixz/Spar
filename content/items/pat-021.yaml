@@ -1,0 +1,15 @@
+id: pat-021
+type: pattern
+difficulty: easy
+est_seconds: 45
+pattern_ids: [arrays-hashing]
+prompt: |
+  A list of transaction amounts is in the order they happened (not sorted).
+  Find two transactions that add up to a target amount in a single pass.
+choices: [arrays-hashing, two-pointers, binary-search, sliding-window]
+answer: arrays-hashing
+signals: [not sorted, a pair, single pass]
+explanation: |
+  Two pointers needs sorted input, which costs O(n log n) first. Instead,
+  keep a map from amount to index and check whether target - amount was seen
+  already. O(n).

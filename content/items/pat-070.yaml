@@ -1,0 +1,16 @@
+id: pat-070
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [trees]
+prompt: |
+  Check whether a binary tree is a valid binary search tree: every value in
+  a node's left subtree is smaller than it and every value in the right
+  subtree is larger.
+choices: [trees, binary-search, heap, greedy]
+answer: trees
+signals: [whole subtree, ordering rule, recursive bounds]
+explanation: |
+  Checking only each node's direct children misses deeper violations. Pass
+  down the allowed (low, high) range, or check that an in-order walk is
+  strictly increasing. O(n).

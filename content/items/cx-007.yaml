@@ -1,0 +1,19 @@
+id: cx-007
+type: complexity
+difficulty: easy
+est_seconds: 40
+pattern_ids: [prefix-sum]
+prompt: |
+  What is the time complexity for n numbers and q queries?
+
+  ```python
+  def range_sums(nums, queries):
+      prefix = [0]
+      for x in nums:
+          prefix.append(prefix[-1] + x)
+      return [prefix[j + 1] - prefix[i] for i, j in queries]
+  ```
+choices: ["O(n * q)", "O(n + q)", "O(q log n)", "O(n^2)"]
+answer: "O(n + q)"
+explanation: |
+  Building the prefix list is O(n) once; every query is then O(1).

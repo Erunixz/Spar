@@ -1,0 +1,15 @@
+id: pat-037
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [sliding-window]
+prompt: |
+  Order sizes are all positive. Find the shortest run of consecutive orders
+  whose total is at least a target.
+choices: [sliding-window, dynamic-programming, greedy, heap]
+answer: sliding-window
+signals: [all positive, shortest run, at least a target]
+explanation: |
+  Because values are positive, growing the window only increases the sum and
+  shrinking only decreases it: extend right until the target is met, then
+  shrink from the left while it still holds. O(n).

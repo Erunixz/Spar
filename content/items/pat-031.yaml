@@ -1,0 +1,14 @@
+id: pat-031
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [two-pointers]
+prompt: |
+  From a list of temperature changes, find every distinct group of three
+  values that sums to zero.
+choices: [two-pointers, backtracking, sliding-window, heap]
+answer: two-pointers
+signals: [triples, sum to zero, distinct groups]
+explanation: |
+  Sort, fix the first value, then run two pointers over the rest, skipping
+  duplicates. O(n^2), versus O(n^3) for trying every triple.

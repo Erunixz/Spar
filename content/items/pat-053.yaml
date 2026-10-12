@@ -1,0 +1,15 @@
+id: pat-053
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [intervals]
+prompt: |
+  Given many meetings as (start, end) times, find the smallest number of
+  rooms needed so that no two meetings in the same room overlap.
+choices: [intervals, graphs, dynamic-programming, binary-search]
+answer: intervals
+signals: [how many at the same time, start and end times]
+explanation: |
+  Sort starts and ends separately and sweep: each start needs a room, each
+  end frees one; the peak count is the answer. (A min-heap of end times also
+  works.) O(n log n).

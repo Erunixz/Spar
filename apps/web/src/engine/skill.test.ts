@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Item } from '../content/schema'
 import { computeSkills, type ResponseEvent, type SkillState } from './skill'
-import { pickNextItem } from './select'
+import { displayChoices, pickNextItem } from './select'
 
 const mkItem = (id: string, patternIds: string[], difficulty: Item['difficulty'] = 'medium'): Item => ({
   id,
@@ -106,5 +106,30 @@ describe('pickNextItem', () => {
   it('still returns an item when the bank has only one', () => {
     const skills = computeSkills(patternIds, itemsById, [])
     expect(pickNextItem([items[0]!], ctx(skills), ['pat-001'], name)?.item.id).toBe('pat-001')
+  })
+})
+
+describe('displayChoices', () => {
+  const seq = (values: number[]) => {
+    let i = 0
+    return () => values[i++ % values.length]!
+  }
+  const patternItem = { ...mkItem('pat-001', ['a']), choices: ['a', 'b', 'c', 'd'], answer: 'a' }
+
+  it('shuffles pattern items without losing or duplicating choices', () => {
+    const shown = displayChoices(patternItem, seq([0, 0, 0]))
+    expect([...shown].sort()).toEqual(['a', 'b', 'c', 'd'])
+    expect(shown[0]).not.toBe('a')
+  })
+
+  it('puts the answer in every slot over many shows', () => {
+    const slots = new Set<number>()
+    for (let n = 0; n < 200; n++) slots.add(displayChoices(patternItem).indexOf('a'))
+    expect(slots).toEqual(new Set([0, 1, 2, 3]))
+  })
+
+  it('keeps complexity choices in their authored order', () => {
+    const cx = { ...patternItem, type: 'complexity' as const, choices: ['O(1)', 'O(n)', 'O(n^2)'], answer: 'O(n)' }
+    expect(displayChoices(cx, seq([0]))).toEqual(['O(1)', 'O(n)', 'O(n^2)'])
   })
 })

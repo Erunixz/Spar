@@ -1,0 +1,15 @@
+id: pat-077
+type: pattern
+difficulty: hard
+est_seconds: 65
+pattern_ids: [heap]
+prompt: |
+  Numbers arrive one at a time. After each one, report the median of
+  everything seen so far.
+choices: [heap, binary-search, sliding-window, prefix-sum]
+answer: heap
+signals: [running median, stream]
+explanation: |
+  Keep the smaller half in a max-heap and the larger half in a min-heap,
+  rebalancing so their sizes differ by at most one; the median is at the
+  tops. O(log n) per number.

@@ -1,0 +1,15 @@
+id: pat-049
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [monotonic-stack]
+prompt: |
+  Design a stack that supports push, pop, top and get-the-current-minimum,
+  each in O(1) time.
+choices: [monotonic-stack, heap, binary-search, arrays-hashing]
+answer: monotonic-stack
+signals: [stack operations, minimum, O(1)]
+explanation: |
+  A heap gives the minimum in O(1) but removals cost O(log n) and it can't
+  pop the most recent item. Store alongside each entry the minimum at the
+  time it was pushed.

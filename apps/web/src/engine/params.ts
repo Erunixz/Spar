@@ -7,7 +7,7 @@
  * produced them.
  */
 export const PARAMS = {
-  version: 'v2-handset-2026-10-11',
+  version: 'v3-handset-2026-10-11',
 
   elo: {
     /** Prior standard deviation of ability before any evidence. */
@@ -48,8 +48,11 @@ export const PARAMS = {
   },
 
   select: {
-    /** Don't repeat any of the last few drill items while others are available. */
-    recentExclude: 8,
+    /**
+     * Don't repeat any of the last N drill items while others are available
+     * (capped at bank size - 1). Sized for the 120-item bank.
+     */
+    recentExclude: 30,
   },
 
   survey: {

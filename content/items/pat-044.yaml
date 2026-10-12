@@ -1,0 +1,14 @@
+id: pat-044
+type: pattern
+difficulty: easy
+est_seconds: 40
+pattern_ids: [binary-search]
+prompt: |
+  Without using a math library, find the integer part of the square root of
+  a very large non-negative number.
+choices: [binary-search, greedy, prefix-sum, two-pointers]
+answer: binary-search
+signals: [largest x such that, x * x <= n]
+explanation: |
+  Search for the largest x with x * x <= n; the condition flips from true to
+  false exactly once. O(log n).

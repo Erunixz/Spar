@@ -1,0 +1,15 @@
+id: pat-038
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [sliding-window]
+prompt: |
+  Find the shortest stretch of a server log that contains every error code
+  from a required list, counting repeats in the list.
+choices: [sliding-window, dynamic-programming, heap, backtracking]
+answer: sliding-window
+signals: [shortest stretch, contains every, counts]
+explanation: |
+  Expand right until the window covers all required counts, then shrink from
+  the left as long as it still covers them, recording the best length. O(n)
+  with a counter of how many requirements are met.

@@ -1,0 +1,21 @@
+id: cx-022
+type: complexity
+difficulty: medium
+est_seconds: 35
+pattern_ids: [trees]
+prompt: |
+  What is the time complexity on a balanced binary search tree with n nodes?
+
+  ```python
+  def contains(node, target):
+      while node:
+          if target == node.val:
+              return True
+          node = node.left if target < node.val else node.right
+      return False
+  ```
+choices: ["O(1)", "O(log n)", "O(n)", "O(n log n)"]
+answer: "O(log n)"
+explanation: |
+  Each step moves one level down, and a balanced tree has about log2(n)
+  levels. (An unbalanced tree could degrade to O(n).)

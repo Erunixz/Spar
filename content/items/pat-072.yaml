@@ -1,0 +1,16 @@
+id: pat-072
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [trees]
+prompt: |
+  Node values in a binary tree can be negative. Find the largest sum along
+  any path between two nodes; the path does not have to pass through the
+  root.
+choices: [trees, greedy, heap, prefix-sum]
+answer: trees
+signals: [any path, through some node, combine children]
+explanation: |
+  Post-order recursion returns the best downward path from each node, while
+  updating a global best with node + best-left + best-right (ignoring
+  negative branches). O(n).

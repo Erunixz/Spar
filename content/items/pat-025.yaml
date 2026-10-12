@@ -1,0 +1,16 @@
+id: pat-025
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [prefix-sum]
+prompt: |
+  A map is a grid of elevation values. Users ask for the total elevation of
+  many different rectangular regions, and each answer must come back in
+  constant time.
+choices: [prefix-sum, dynamic-programming, graphs, sliding-window]
+answer: prefix-sum
+signals: [rectangle sums, many queries, constant time]
+explanation: |
+  Build a 2D prefix table where P[r][c] is the sum of everything above and
+  to the left; any rectangle is then four lookups combined by inclusion and
+  exclusion.

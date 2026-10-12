@@ -1,0 +1,20 @@
+id: cx-023
+type: complexity
+difficulty: medium
+est_seconds: 45
+pattern_ids: [heap]
+prompt: |
+  What is the time complexity for a list of n numbers and a given k?
+
+  ```python
+  import heapq
+
+  def k_smallest(nums, k):
+      heapq.heapify(nums)
+      return [heapq.heappop(nums) for _ in range(k)]
+  ```
+choices: ["O(n log n)", "O(n + k log n)", "O(k log k)", "O(n * k)"]
+answer: "O(n + k log n)"
+explanation: |
+  heapify builds a heap in O(n), not O(n log n); then each of the k pops
+  costs O(log n).

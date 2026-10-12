@@ -1,0 +1,14 @@
+id: pat-079
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [graphs]
+prompt: |
+  Make a full copy of a social network where each person holds a list of
+  friends, and friendships can form cycles.
+choices: [graphs, trees, linked-list, heap]
+answer: graphs
+signals: [copy, neighbours, cycles]
+explanation: |
+  Traverse with BFS or DFS and keep a map from original person to copy, so
+  each person is cloned once even when cycles lead back to them. O(V + E).

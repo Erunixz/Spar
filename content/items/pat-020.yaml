@@ -1,0 +1,15 @@
+id: pat-020
+type: pattern
+difficulty: easy
+est_seconds: 40
+pattern_ids: [arrays-hashing]
+prompt: |
+  You want to spell a message by cutting letters out of a magazine, using
+  each printed letter at most once. Decide whether the magazine has enough
+  letters.
+choices: [arrays-hashing, two-pointers, greedy, backtracking]
+answer: arrays-hashing
+signals: [enough letters, each used once, counts]
+explanation: |
+  Count the magazine's letters in a map (or a 26-slot array), then subtract
+  the message's letters; if any count goes negative, it can't be done. O(n).

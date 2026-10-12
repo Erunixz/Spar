@@ -1,0 +1,15 @@
+id: pat-023
+type: pattern
+difficulty: easy
+est_seconds: 40
+pattern_ids: [prefix-sum]
+prompt: |
+  A fitness tracker stores steps per minute for a whole day. The app must
+  answer thousands of questions like "how many steps between minute 300 and
+  minute 420?" instantly.
+choices: [prefix-sum, sliding-window, binary-search, heap]
+answer: prefix-sum
+signals: [many range queries, fixed data]
+explanation: |
+  Precompute running totals once; then each query is prefix[j + 1] -
+  prefix[i], O(1) per query after O(n) setup.

@@ -1,0 +1,14 @@
+id: pat-082
+type: pattern
+difficulty: medium
+est_seconds: 45
+pattern_ids: [graphs]
+prompt: |
+  Given a list of friendships between n people, count how many separate
+  friend groups there are.
+choices: [graphs, arrays-hashing, greedy, heap]
+answer: graphs
+signals: [connected, separate groups]
+explanation: |
+  Count connected components: start a DFS or BFS from every person not yet
+  visited (or use union-find). O(V + E).

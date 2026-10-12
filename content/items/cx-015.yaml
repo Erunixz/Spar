@@ -1,0 +1,20 @@
+id: cx-015
+type: complexity
+difficulty: easy
+est_seconds: 35
+pattern_ids: [intervals]
+prompt: |
+  What is the time complexity for n meetings?
+
+  ```python
+  def can_attend(meetings):
+      meetings.sort()
+      for a, b in zip(meetings, meetings[1:]):
+          if b[0] < a[1]:
+              return False
+      return True
+  ```
+choices: ["O(log n)", "O(n)", "O(n log n)", "O(n^2)"]
+answer: "O(n log n)"
+explanation: |
+  The scan is O(n), but sorting first costs O(n log n), which dominates.

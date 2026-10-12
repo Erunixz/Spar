@@ -1,0 +1,13 @@
+id: pat-084
+type: pattern
+difficulty: medium
+est_seconds: 45
+pattern_ids: [backtracking]
+prompt: |
+  List every possible order in which 6 different slides could be presented.
+choices: [backtracking, dynamic-programming, heap, graphs]
+answer: backtracking
+signals: [every order, distinct items]
+explanation: |
+  Pick an unused slide for the next position, recurse, then put it back.
+  There are n! orders.

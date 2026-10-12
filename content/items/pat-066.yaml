@@ -1,0 +1,14 @@
+id: pat-066
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [linked-list]
+prompt: |
+  Reverse a linked list in groups of k nodes (the first k, then the next k,
+  and so on), leaving a final group of fewer than k nodes as it is.
+choices: [linked-list, monotonic-stack, backtracking, dynamic-programming]
+answer: linked-list
+signals: [groups of k, reverse, rewire]
+explanation: |
+  For each full group, reverse its k nodes in place and reconnect the
+  group's new head and tail to the neighbouring groups. O(n), O(1) space.

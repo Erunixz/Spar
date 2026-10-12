@@ -1,0 +1,16 @@
+id: pat-091
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [dynamic-programming]
+prompt: |
+  Decide whether a string with no spaces, like "applepenapple", can be split
+  into words from a given dictionary.
+choices: [dynamic-programming, sliding-window, greedy, two-pointers]
+answer: dynamic-programming
+signals: [can it be split, prefixes, reuse answers]
+explanation: |
+  ok[i] is true if some dictionary word ends at i and ok at its start is
+  true. Greedy longest-match fails: with words {car, ca, rs}, "cars" splits
+  as ca + rs, but grabbing "car" first leaves "s". O(n^2) with a set of
+  words.

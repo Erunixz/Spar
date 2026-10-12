@@ -1,0 +1,15 @@
+id: pat-039
+type: pattern
+difficulty: hard
+est_seconds: 70
+pattern_ids: [sliding-window]
+prompt: |
+  A stream of temperature readings arrives. After each reading, report the
+  maximum of the last k readings, with O(n) total work.
+choices: [sliding-window, heap, binary-search, prefix-sum]
+answer: sliding-window
+signals: [last k readings, maximum, O(n) total]
+explanation: |
+  A heap gives O(n log k). A deque of indices whose values decrease keeps the
+  window's maximum at the front; old indices fall off the front and smaller
+  values are dropped from the back. O(n).

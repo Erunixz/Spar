@@ -1,0 +1,14 @@
+id: pat-086
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [backtracking]
+prompt: |
+  Generate every valid arrangement of n pairs of parentheses, such as (())()
+  for n = 3.
+choices: [backtracking, monotonic-stack, dynamic-programming, greedy]
+answer: backtracking
+signals: [generate every, validity rules while building]
+explanation: |
+  Build left to right: add "(" while some remain, add ")" only while it
+  doesn't exceed the open ones. Invalid prefixes are never extended.

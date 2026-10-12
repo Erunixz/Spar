@@ -1,0 +1,16 @@
+id: pat-022
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [arrays-hashing]
+prompt: |
+  Seat numbers handed out so far are in an unsorted array that may contain
+  duplicates, zeros and negatives. Find the smallest positive seat number not
+  yet used, in O(n) time and O(1) extra space.
+choices: [arrays-hashing, binary-search, heap, greedy]
+answer: arrays-hashing
+signals: [smallest missing positive, O(1) extra space, values map to indices]
+explanation: |
+  The answer is between 1 and n + 1, so use the array itself as the hash
+  table: place each value v in slot v - 1 by swapping, then the first slot
+  that doesn't hold its own number gives the answer. O(n), O(1) space.

@@ -1,0 +1,19 @@
+id: cx-021
+type: complexity
+difficulty: easy
+est_seconds: 35
+pattern_ids: [trees]
+prompt: |
+  What is the time complexity for a binary tree with n nodes?
+
+  ```python
+  def depth(node):
+      if node is None:
+          return 0
+      return 1 + max(depth(node.left), depth(node.right))
+  ```
+choices: ["O(log n)", "O(n)", "O(n log n)", "O(2^n)"]
+answer: "O(n)"
+explanation: |
+  Two recursive calls look exponential, but they go to different subtrees:
+  each node is visited exactly once.

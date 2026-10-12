@@ -1,0 +1,16 @@
+id: pat-026
+type: pattern
+difficulty: medium
+est_seconds: 70
+pattern_ids: [prefix-sum]
+prompt: |
+  A game log records each match as a win (+1) or a loss (-1). Find the
+  longest stretch of consecutive matches with exactly as many wins as losses.
+choices: [prefix-sum, sliding-window, greedy, two-pointers]
+answer: prefix-sum
+signals: [equal counts, longest stretch, running balance]
+explanation: |
+  A stretch is balanced when the running total is the same at both ends.
+  Remember the first index where each running total appeared; the longest
+  gap between equal totals is the answer. O(n). A window doesn't work
+  because the balance isn't monotonic as it grows.

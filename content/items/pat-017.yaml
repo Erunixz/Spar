@@ -1,0 +1,14 @@
+id: pat-017
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [arrays-hashing]
+prompt: |
+  A warehouse system receives today's list of product SKUs. Report whether
+  any SKU appears more than once, as fast as possible.
+choices: [arrays-hashing, binary-search, heap, monotonic-stack]
+answer: arrays-hashing
+signals: [appears more than once, as fast as possible]
+explanation: |
+  Walk the list once and keep a set of SKUs seen so far; a repeat is found
+  the moment a SKU is already in the set. O(n) time, O(n) space.

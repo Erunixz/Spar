@@ -1,0 +1,15 @@
+id: pat-029
+type: pattern
+difficulty: easy
+est_seconds: 40
+pattern_ids: [two-pointers]
+prompt: |
+  A sensor array contains some zero readings. Move every zero to the end, in
+  place, while keeping the other readings in their original order.
+choices: [two-pointers, heap, sliding-window, binary-search]
+answer: two-pointers
+signals: [in place, keep the order, move to the end]
+explanation: |
+  A write pointer marks where the next non-zero belongs; a read pointer scans
+  everything and copies non-zeros forward. Fill the rest with zeros. O(n),
+  O(1) space.

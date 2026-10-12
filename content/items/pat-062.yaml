@@ -1,0 +1,14 @@
+id: pat-062
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [linked-list]
+prompt: |
+  A playlist is stored as a singly linked list of songs. Reverse it in place.
+choices: [linked-list, monotonic-stack, two-pointers, arrays-hashing]
+answer: linked-list
+signals: [singly linked, reverse, in place]
+explanation: |
+  Walk the list keeping the previous node; point each node's next back at
+  the previous one. O(n) time, O(1) space. A stack works but uses O(n)
+  space.

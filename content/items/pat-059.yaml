@@ -1,0 +1,15 @@
+id: pat-059
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [greedy]
+prompt: |
+  Split a string into as many pieces as possible so that each letter appears
+  in only one piece.
+choices: [greedy, dynamic-programming, backtracking, binary-search]
+answer: greedy
+signals: [as many pieces as possible, last occurrence]
+explanation: |
+  Record each letter's last position, then scan: extend the current piece's
+  end to the last position of every letter inside it and cut when you reach
+  it. O(n).

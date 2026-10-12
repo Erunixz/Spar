@@ -1,0 +1,13 @@
+id: pat-068
+type: pattern
+difficulty: easy
+est_seconds: 30
+pattern_ids: [trees]
+prompt: |
+  Mirror a binary tree so that every left child becomes a right child and
+  every right child becomes a left child.
+choices: [trees, monotonic-stack, linked-list, greedy]
+answer: trees
+signals: [every node, swap children]
+explanation: |
+  Swap the children of each node and recurse into both. O(n).

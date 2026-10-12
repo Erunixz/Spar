@@ -1,0 +1,15 @@
+id: pat-042
+type: pattern
+difficulty: medium
+est_seconds: 65
+pattern_ids: [binary-search]
+prompt: |
+  A courier must clear several piles of parcels. Each hour they work on one
+  pile and process up to s parcels from it. Find the smallest s that clears
+  every pile within H hours.
+choices: [binary-search, greedy, heap, dynamic-programming]
+answer: binary-search
+signals: [smallest rate that works, faster always still works]
+explanation: |
+  If speed s works, every faster speed works, so binary search s between 1
+  and the largest pile; each check sums ceil(pile / s). O(n log max).

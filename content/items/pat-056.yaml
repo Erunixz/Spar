@@ -1,0 +1,14 @@
+id: pat-056
+type: pattern
+difficulty: easy
+est_seconds: 45
+pattern_ids: [greedy]
+prompt: |
+  Each child needs a cookie of at least a certain size to be happy, and each
+  cookie can go to one child. Make as many children happy as possible.
+choices: [greedy, dynamic-programming, backtracking, graphs]
+answer: greedy
+signals: [as many as possible, smallest that works]
+explanation: |
+  Sort both lists and give each child, from least to most demanding, the
+  smallest cookie that satisfies them. O(n log n + m log m).

@@ -1,0 +1,14 @@
+id: pat-048
+type: pattern
+difficulty: medium
+est_seconds: 45
+pattern_ids: [monotonic-stack]
+prompt: |
+  Evaluate an arithmetic expression written in postfix order, where
+  operators come after their operands, such as 3 4 + 2 *.
+choices: [monotonic-stack, dynamic-programming, backtracking, greedy]
+answer: monotonic-stack
+signals: [postfix, operands before operators]
+explanation: |
+  Push numbers; on an operator, pop two values, apply it, and push the
+  result. The last value left is the answer. O(n).

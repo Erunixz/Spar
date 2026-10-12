@@ -1,0 +1,15 @@
+id: pat-073
+type: pattern
+difficulty: easy
+est_seconds: 40
+pattern_ids: [heap]
+prompt: |
+  Rocks are repeatedly smashed together, always the two heaviest. Equal rocks
+  both break; otherwise the lighter breaks and the heavier loses that much
+  weight. Report the weight of the last rock left, if any.
+choices: [heap, monotonic-stack, binary-search, sliding-window]
+answer: heap
+signals: [always the two heaviest, repeat until done]
+explanation: |
+  A max-heap gives the two heaviest in O(log n) each time and takes the
+  leftover back in. O(n log n).

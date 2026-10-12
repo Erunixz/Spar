@@ -1,0 +1,14 @@
+id: pat-060
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [greedy]
+prompt: |
+  Decide whether a hand of number cards can be split into groups of exactly
+  W cards, each group being W consecutive values.
+choices: [greedy, backtracking, dynamic-programming, graphs]
+answer: greedy
+signals: [groups of consecutive values, smallest card must start a group]
+explanation: |
+  The smallest remaining card can only start a group, so repeatedly take it
+  and remove the next W - 1 values from a count map. O(n log n).

@@ -1,0 +1,14 @@
+id: pat-028
+type: pattern
+difficulty: easy
+est_seconds: 30
+pattern_ids: [two-pointers]
+prompt: |
+  Decide whether a username reads the same forwards and backwards, ignoring
+  punctuation and letter case, without building a reversed copy.
+choices: [two-pointers, monotonic-stack, sliding-window, arrays-hashing]
+answer: two-pointers
+signals: [same forwards and backwards, no copy]
+explanation: |
+  Start one index at each end, skip non-letters, compare, and move inward.
+  O(n) time, O(1) space.

@@ -1,0 +1,14 @@
+id: pat-087
+type: pattern
+difficulty: hard
+est_seconds: 60
+pattern_ids: [backtracking]
+prompt: |
+  Place n chess queens on an n by n board so that no two attack each other.
+  List every solution.
+choices: [backtracking, dynamic-programming, greedy, graphs]
+answer: backtracking
+signals: [place pieces, constraints, list every solution]
+explanation: |
+  Place one queen per row, trying each safe column (tracking used columns
+  and diagonals in sets), and back out when a row has no safe column.

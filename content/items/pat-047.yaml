@@ -1,0 +1,15 @@
+id: pat-047
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [monotonic-stack]
+prompt: |
+  For each day's share price, report how many consecutive days, ending
+  today, had a price less than or equal to today's.
+choices: [monotonic-stack, sliding-window, heap, prefix-sum]
+answer: monotonic-stack
+signals: [looking back, until a bigger value, for each day]
+explanation: |
+  Keep a stack of (price, span) with strictly decreasing prices; pop and add
+  the spans of every price not larger than today's. Each day is pushed and
+  popped once, so O(n).

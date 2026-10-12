@@ -1,0 +1,21 @@
+id: cx-028
+type: complexity
+difficulty: medium
+est_seconds: 50
+pattern_ids: [dynamic-programming]
+prompt: |
+  What is the time complexity for an amount A and k coin values?
+
+  ```python
+  def fewest_coins(coins, amount):
+      best = [0] + [float('inf')] * amount
+      for a in range(1, amount + 1):
+          for c in coins:
+              if c <= a:
+                  best[a] = min(best[a], best[a - c] + 1)
+      return best[amount] if best[amount] != float('inf') else -1
+  ```
+choices: ["O(A + k)", "O(A * k)", "O(k^A)", "O(A^2)"]
+answer: "O(A * k)"
+explanation: |
+  A table of A + 1 entries, each filled by trying all k coins once.

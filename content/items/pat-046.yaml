@@ -1,0 +1,14 @@
+id: pat-046
+type: pattern
+difficulty: easy
+est_seconds: 30
+pattern_ids: [monotonic-stack]
+prompt: |
+  Check whether a string of brackets like {[()()]} is properly nested and
+  closed.
+choices: [monotonic-stack, arrays-hashing, two-pointers, greedy]
+answer: monotonic-stack
+signals: [nested, matching pairs, last opened closes first]
+explanation: |
+  Push opening brackets; each closing bracket must match the top of the
+  stack. Valid when the stack ends empty. O(n).

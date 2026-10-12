@@ -1,0 +1,25 @@
+id: cx-027
+type: complexity
+difficulty: hard
+est_seconds: 60
+pattern_ids: [backtracking]
+prompt: |
+  What is the time complexity for n distinct items?
+
+  ```python
+  def permutations(items):
+      out = []
+      def go(current, remaining):
+          if not remaining:
+              out.append(current)
+              return
+          for i in range(len(remaining)):
+              go(current + [remaining[i]], remaining[:i] + remaining[i + 1:])
+      go([], items)
+      return out
+  ```
+choices: ["O(2^n)", "O(n^2 * 2^n)", "O(n * n!)", "O(n^n)"]
+answer: "O(n * n!)"
+explanation: |
+  There are n! complete orderings, and building each list along the way
+  costs O(n) per step, giving O(n * n!).

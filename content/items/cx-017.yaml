@@ -1,0 +1,21 @@
+id: cx-017
+type: complexity
+difficulty: easy
+est_seconds: 30
+pattern_ids: [greedy]
+prompt: |
+  What is the time complexity for a path of n tiles?
+
+  ```python
+  def can_reach(hops):
+      furthest = 0
+      for i, h in enumerate(hops):
+          if i > furthest:
+              return False
+          furthest = max(furthest, i + h)
+      return True
+  ```
+choices: ["O(n)", "O(n log n)", "O(n^2)", "O(2^n)"]
+answer: "O(n)"
+explanation: |
+  A single pass tracking the furthest reachable tile; no tile is revisited.

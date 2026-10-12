@@ -1,0 +1,14 @@
+id: pat-024
+type: pattern
+difficulty: easy
+est_seconds: 45
+pattern_ids: [prefix-sum]
+prompt: |
+  Weights sit in a row on a beam. Find a position where the total weight to
+  its left equals the total weight to its right.
+choices: [prefix-sum, two-pointers, binary-search, greedy]
+answer: prefix-sum
+signals: [total to the left, total to the right]
+explanation: |
+  Compute the full total once, then walk left to right keeping a running
+  left sum; the right sum is total - left - current. O(n).

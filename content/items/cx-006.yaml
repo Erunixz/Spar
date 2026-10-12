@@ -1,0 +1,21 @@
+id: cx-006
+type: complexity
+difficulty: medium
+est_seconds: 50
+pattern_ids: [arrays-hashing]
+prompt: |
+  What is the time complexity for n words of length at most L?
+
+  ```python
+  def group(words):
+      groups = {}
+      for w in words:
+          key = ''.join(sorted(w))
+          groups.setdefault(key, []).append(w)
+      return list(groups.values())
+  ```
+choices: ["O(n)", "O(n * L)", "O(n * L log L)", "O(n^2 * L)"]
+answer: "O(n * L log L)"
+explanation: |
+  Each word is sorted to build its key, which costs O(L log L); that happens
+  n times. (A 26-letter count key would make it O(n * L).)

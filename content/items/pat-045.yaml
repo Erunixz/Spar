@@ -1,0 +1,15 @@
+id: pat-045
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [binary-search]
+prompt: |
+  Two sorted lists have different lengths m and n. Find the median of all
+  their values together in O(log(min(m, n))) time.
+choices: [binary-search, heap, two-pointers, sliding-window]
+answer: binary-search
+signals: [two sorted lists, logarithmic time, median]
+explanation: |
+  Merging with two pointers is O(m + n). Instead, binary search the cut in
+  the shorter list so that everything left of both cuts is no bigger than
+  everything right of them.

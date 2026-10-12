@@ -1,0 +1,15 @@
+id: pat-071
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [trees]
+prompt: |
+  A company's reporting lines form a binary tree. Given two employees, find
+  their lowest common manager.
+choices: [trees, binary-search, dynamic-programming, heap]
+answer: trees
+signals: [lowest common ancestor, two nodes]
+explanation: |
+  Recurse: if a subtree contains one employee and the other subtree contains
+  the second, the current node is the answer; otherwise pass up whichever
+  side found something. O(n).

@@ -12,6 +12,8 @@ import {
 
 export interface Pick {
   item: Item
+  /** Choices in display order: shuffled for pattern items so the answer isn't always in the same slot. */
+  choices: string[]
   reason: string
   /** Everything needed to log this decision for Phase 9 re-estimation. */
   decision: {
@@ -20,6 +22,20 @@ export interface Pick {
     candidates: CandidateScore[]
     poolSize: number
   }
+}
+
+/**
+ * Pattern items list their answer first in the YAML, so they are shuffled for
+ * display. Complexity choices keep their authored small-to-large order.
+ */
+export function displayChoices(item: Item, random: () => number = Math.random): string[] {
+  if (item.type !== 'pattern') return [...item.choices]
+  const out = [...item.choices]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1))
+    ;[out[i], out[j]] = [out[j]!, out[i]!]
+  }
+  return out
 }
 
 /** Don't repeat any of the last few items while others are available. */
@@ -64,6 +80,7 @@ export function pickNextItem(
   if (!best) return null
   return {
     item: best.item,
+    choices: displayChoices(best.item, random),
     reason: formatReason(patternName(best.scored.targetPattern), best.scored.reasons),
     decision: { scored: best.scored, noise: best.noise, candidates: topCandidates(all), poolSize: all.length },
   }

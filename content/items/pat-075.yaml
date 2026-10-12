@@ -1,0 +1,14 @@
+id: pat-075
+type: pattern
+difficulty: medium
+est_seconds: 45
+pattern_ids: [heap]
+prompt: |
+  Find the k-th highest score in an unsorted list of a million scores
+  without sorting the whole list.
+choices: [heap, binary-search, prefix-sum, monotonic-stack]
+answer: heap
+signals: [k-th largest, unsorted, avoid full sort]
+explanation: |
+  A min-heap of size k holds the k largest seen so far; its top is the
+  answer. O(n log k).

@@ -1,0 +1,14 @@
+id: pat-035
+type: pattern
+difficulty: medium
+est_seconds: 50
+pattern_ids: [sliding-window]
+prompt: |
+  Find the length of the longest stretch of a password that has no repeated
+  character.
+choices: [sliding-window, dynamic-programming, binary-search, heap]
+answer: sliding-window
+signals: [longest stretch, no repeats]
+explanation: |
+  Grow the window on the right; when a character repeats, move the left edge
+  past its previous position. O(n) with a last-seen map.

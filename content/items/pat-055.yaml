@@ -1,0 +1,14 @@
+id: pat-055
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [intervals]
+prompt: |
+  Each employee has a sorted list of busy (start, end) blocks. Find every
+  block of time when all employees are free at once.
+choices: [intervals, graphs, dynamic-programming, backtracking]
+answer: intervals
+signals: [busy blocks, common free time, everyone]
+explanation: |
+  Combine all busy blocks, sort by start, merge overlaps, and report the
+  gaps between merged blocks. O(N log N) for N blocks in total.

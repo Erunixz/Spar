@@ -1,0 +1,15 @@
+id: pat-040
+type: pattern
+difficulty: easy
+est_seconds: 35
+pattern_ids: [binary-search]
+prompt: |
+  App versions 1 to n were released in order, and once a bug appeared every
+  later version has it too. Using an isBad(version) check, find the first bad
+  version with as few checks as possible.
+choices: [binary-search, two-pointers, greedy, sliding-window]
+answer: binary-search
+signals: [once bad always bad, fewest checks]
+explanation: |
+  The versions form good...good bad...bad, a monotonic predicate, so halve
+  the range each check. O(log n) calls.

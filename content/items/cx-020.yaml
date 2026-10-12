@@ -1,0 +1,25 @@
+id: cx-020
+type: complexity
+difficulty: medium
+est_seconds: 50
+pattern_ids: [linked-list]
+prompt: |
+  What is the time complexity for a linked list of n nodes, which may loop
+  back on itself?
+
+  ```python
+  def has_cycle(head):
+      slow = fast = head
+      while fast and fast.next:
+          slow = slow.next
+          fast = fast.next.next
+          if slow is fast:
+              return True
+      return False
+  ```
+choices: ["O(1)", "O(log n)", "O(n)", "O(n^2)"]
+answer: "O(n)"
+explanation: |
+  Without a loop, fast reaches the end in n / 2 steps. With a loop, once
+  both are inside it the gap closes by one node per step, so they meet
+  within n more steps.

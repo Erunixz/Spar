@@ -1,0 +1,14 @@
+id: pat-088
+type: pattern
+difficulty: easy
+est_seconds: 45
+pattern_ids: [dynamic-programming]
+prompt: |
+  Houses along a street hold different amounts of cash. A burglar can't take
+  from two neighbouring houses. Find the most cash they can take.
+choices: [dynamic-programming, greedy, backtracking, sliding-window]
+answer: dynamic-programming
+signals: [maximize, can't pick neighbours, choice at each step]
+explanation: |
+  Taking the biggest houses greedily fails (e.g. 2, 3, 2). best(i) =
+  max(best(i - 1), best(i - 2) + cash[i]). O(n), O(1) space.

@@ -1,0 +1,16 @@
+id: pat-057
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [greedy]
+prompt: |
+  Fuel stations sit on a circular road. Each gives some fuel and the trip to
+  the next costs some fuel. Find a starting station from which you can drive
+  the full loop, or report that none exists.
+choices: [greedy, dynamic-programming, graphs, binary-search]
+answer: greedy
+signals: [circular route, running tank, restart after failure]
+explanation: |
+  If total fuel is less than total cost, no start works. Otherwise keep a
+  running tank; whenever it drops below zero, the next station becomes the
+  candidate start. O(n).

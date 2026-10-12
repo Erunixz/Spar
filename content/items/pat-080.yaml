@@ -1,0 +1,14 @@
+id: pat-080
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [graphs]
+prompt: |
+  Flights between cities each have a price. Find the cheapest total price to
+  get from one city to another.
+choices: [graphs, greedy, binary-search, sliding-window]
+answer: graphs
+signals: [weighted connections, cheapest route]
+explanation: |
+  A shortest-path problem on a weighted graph: Dijkstra's algorithm with a
+  priority queue, O(E log V) for non-negative prices.

@@ -1,0 +1,14 @@
+id: pat-050
+type: pattern
+difficulty: hard
+est_seconds: 75
+pattern_ids: [monotonic-stack]
+prompt: |
+  A histogram has bars of width 1 and different heights. Find the area of
+  the largest rectangle that fits entirely under the bars.
+choices: [monotonic-stack, dynamic-programming, two-pointers, binary-search]
+answer: monotonic-stack
+signals: [largest rectangle, nearest shorter bar on each side]
+explanation: |
+  Each bar's best rectangle reaches to the nearest shorter bar on both
+  sides. An increasing stack finds both boundaries when bars are popped. O(n).

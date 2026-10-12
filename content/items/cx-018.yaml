@@ -1,0 +1,22 @@
+id: cx-018
+type: complexity
+difficulty: medium
+est_seconds: 45
+pattern_ids: [greedy]
+prompt: |
+  What is the time complexity for n children and m cookies?
+
+  ```python
+  def content_children(greed, cookies):
+      greed.sort()
+      cookies.sort()
+      child = 0
+      for c in cookies:
+          if child < len(greed) and c >= greed[child]:
+              child += 1
+      return child
+  ```
+choices: ["O(n + m)", "O(n log n + m log m)", "O(n * m)", "O(n * m log m)"]
+answer: "O(n log n + m log m)"
+explanation: |
+  Both lists are sorted; the matching loop afterwards is only O(m).

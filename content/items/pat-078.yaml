@@ -1,0 +1,15 @@
+id: pat-078
+type: pattern
+difficulty: medium
+est_seconds: 55
+pattern_ids: [graphs]
+prompt: |
+  In a crate of oranges laid out as a grid, rotten oranges make their fresh
+  neighbours rotten every minute. Find how many minutes pass until no fresh
+  orange is left, or report that some never rot.
+choices: [graphs, dynamic-programming, greedy, backtracking]
+answer: graphs
+signals: [spreads each minute, grid, all sources at once]
+explanation: |
+  Multi-source breadth-first search: start the queue with every rotten
+  orange and count BFS levels. O(rows * cols).

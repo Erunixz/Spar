@@ -1,0 +1,22 @@
+id: cx-009
+type: complexity
+difficulty: easy
+est_seconds: 30
+pattern_ids: [two-pointers]
+prompt: |
+  What is the time complexity for a string of length n?
+
+  ```python
+  def is_palindrome(s):
+      i, j = 0, len(s) - 1
+      while i < j:
+          if s[i] != s[j]:
+              return False
+          i += 1
+          j -= 1
+      return True
+  ```
+choices: ["O(1)", "O(log n)", "O(n)", "O(n^2)"]
+answer: "O(n)"
+explanation: |
+  The pointers meet in the middle after about n / 2 steps.

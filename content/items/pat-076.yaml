@@ -1,0 +1,14 @@
+id: pat-076
+type: pattern
+difficulty: hard
+est_seconds: 60
+pattern_ids: [heap]
+prompt: |
+  Merge k sorted log files into one sorted stream, where k can be in the
+  hundreds.
+choices: [heap, two-pointers, sliding-window, binary-search]
+answer: heap
+signals: [k sorted inputs, merge, always the smallest next]
+explanation: |
+  Put the first line of each file in a min-heap; repeatedly emit the
+  smallest and push the next line from the same file. O(N log k).

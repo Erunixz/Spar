@@ -1,0 +1,14 @@
+id: pat-041
+type: pattern
+difficulty: medium
+est_seconds: 60
+pattern_ids: [binary-search]
+prompt: |
+  A sorted list of IDs was rotated at an unknown point (for example 40 50 10
+  20 30). Find a given ID in O(log n) time.
+choices: [binary-search, two-pointers, arrays-hashing, heap]
+answer: binary-search
+signals: [sorted then rotated, O(log n)]
+explanation: |
+  At every midpoint, at least one half is still sorted; check whether the
+  target lies in that half and discard the other. O(log n).

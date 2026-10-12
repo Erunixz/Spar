@@ -1,0 +1,23 @@
+id: cx-014
+type: complexity
+difficulty: medium
+est_seconds: 50
+pattern_ids: [monotonic-stack]
+prompt: |
+  What is the time complexity for n buildings?
+
+  ```python
+  def next_taller(heights):
+      answer = [-1] * len(heights)
+      stack = []
+      for i, h in enumerate(heights):
+          while stack and heights[stack[-1]] < h:
+              answer[stack.pop()] = i
+          stack.append(i)
+      return answer
+  ```
+choices: ["O(n)", "O(n log n)", "O(n^2)", "O(2^n)"]
+answer: "O(n)"
+explanation: |
+  The inner loop looks nested, but every index is pushed once and popped at
+  most once over the whole run: O(n) amortized.
