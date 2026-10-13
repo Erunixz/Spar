@@ -3,6 +3,8 @@ import { DEFAULT_MAX_STEPS, pythonRunner } from '../../workers/runner'
 import { formatValue, type Frame, type Step, type TraceResult } from '../../workers/trace'
 import { arrayViews, type ArrayView } from './arrays'
 import { ArrayViewer } from './ArrayViewer'
+import { nodeSummary, structureViews } from './structures'
+import { StructuresPanel } from './StructuresPanel'
 import { CodeEditor } from './CodeEditor'
 import { SAMPLES } from './samples'
 
@@ -166,6 +168,7 @@ export default function VisualizerScreen() {
               {steps.length > 0 && step && (
                 <>
                   <Stepper index={stepIndex} count={steps.length} step={step} onGo={go} />
+                  <StructuresPanel views={structureViews(step, prev)} />
                   <FramesPanel step={step} prev={prev} />
                 </>
               )}
@@ -326,15 +329,17 @@ function FrameView({
         <table className="w-full font-mono text-sm">
           <tbody>
             {entries.map(([name, value]) => {
-              const shown = formatValue(step, value)
+              const full = formatValue(step, value)
+              // Nodes are drawn in the Structures panel, so keep their row short.
+              const shown = nodeSummary(step, value) ?? full
               const before = prevFrame && prev && name in prevFrame.locals ? formatValue(prev, prevFrame.locals[name]!) : null
-              const changed = prev !== null && shown !== before
+              const changed = prev !== null && full !== before
               return (
                 <tr key={name} className="align-top">
                   <td className="w-1 whitespace-nowrap py-0.5 pr-3 text-slate-500 dark:text-slate-400">{name}</td>
                   <td
                     className={`break-all rounded px-1 py-0.5 ${changed ? 'bg-amber-100 dark:bg-amber-900/50' : ''}`}
-                    title={changed ? 'Changed in the last step' : undefined}
+                    title={shown !== full ? full : changed ? 'Changed in the last step' : undefined}
                   >
                     {shown}
                   </td>
