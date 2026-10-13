@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DEFAULT_MAX_STEPS, pythonRunner } from '../../workers/runner'
 import { formatValue, type Frame, type Step, type TraceResult } from '../../workers/trace'
+import { arrayViews, type ArrayView } from './arrays'
+import { ArrayViewer } from './ArrayViewer'
 import { CodeEditor } from './CodeEditor'
 import { SAMPLES } from './samples'
 
@@ -250,15 +252,34 @@ function Stepper({ index, count, step, onGo }: { index: number; count: number; s
 }
 
 function FramesPanel({ step, prev }: { step: Step; prev: Step | null }) {
-  // Innermost frame first, like a debugger's call stack.
-  const frames = useMemo(() => step.stack.map((f, depth) => ({ f, depth })).reverse(), [step])
+  // Innermost frame first, like a debugger's call stack. A list shared by several
+  // frames is drawn once, in the innermost frame that holds it.
+  const frames = useMemo(() => {
+    const drawn = new Set<number>()
+    return step.stack
+      .map((f, depth) => ({ f, depth }))
+      .reverse()
+      .map(({ f, depth }) => {
+        const arrays = arrayViews(step, f, prev, prev?.stack[depth]).filter((v) => v.ref === null || !drawn.has(v.ref))
+        for (const v of arrays) if (v.ref !== null) drawn.add(v.ref)
+        return { f, depth, arrays }
+      })
+  }, [step, prev])
   return (
     <section className="space-y-2">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         Call stack
       </h3>
-      {frames.map(({ f, depth }, i) => (
-        <FrameView key={depth} frame={f} step={step} prevFrame={prev?.stack[depth]} prev={prev} active={i === 0} />
+      {frames.map(({ f, depth, arrays }, i) => (
+        <FrameView
+          key={depth}
+          frame={f}
+          arrays={arrays}
+          step={step}
+          prevFrame={prev?.stack[depth]}
+          prev={prev}
+          active={i === 0}
+        />
       ))}
     </section>
   )
@@ -266,12 +287,14 @@ function FramesPanel({ step, prev }: { step: Step; prev: Step | null }) {
 
 function FrameView({
   frame,
+  arrays,
   step,
   prev,
   prevFrame,
   active,
 }: {
   frame: Frame
+  arrays: ArrayView[]
   step: Step
   prev: Step | null
   prevFrame: Frame | undefined
@@ -290,6 +313,13 @@ function FrameView({
         <span className="font-semibold">{frame.fn === '<module>' ? 'global' : `${frame.fn}()`}</span>
         <span className="text-slate-400"> · line {frame.line}</span>
       </p>
+      {arrays.length > 0 && (
+        <div className="mb-3 space-y-3">
+          {arrays.map((view) => (
+            <ArrayViewer key={view.name} view={view} />
+          ))}
+        </div>
+      )}
       {entries.length === 0 ? (
         <p className="text-xs text-slate-400">No variables yet</p>
       ) : (
