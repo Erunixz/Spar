@@ -11,6 +11,9 @@ export default defineConfig({
   // Pyodide's loader fetches its own runtime files; pre-bundling breaks that.
   optimizeDeps: { exclude: ['pyodide'] },
   worker: { format: 'es' },
+  // The visualizer chunk (CodeMirror + views) is ~520 KB but lazy-loaded with its tab;
+  // the main bundle stays well under this, so the warning still catches real growth there.
+  build: { chunkSizeWarningLimit: 600 },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],

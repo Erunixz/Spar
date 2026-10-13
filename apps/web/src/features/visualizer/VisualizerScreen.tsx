@@ -3,6 +3,11 @@ import { DEFAULT_MAX_STEPS, pythonRunner } from '../../workers/runner'
 import { formatValue, type Frame, type Step, type TraceResult } from '../../workers/trace'
 import { arrayViews, type ArrayView } from './arrays'
 import { ArrayViewer } from './ArrayViewer'
+import { buildCallTree } from './callTree'
+import { CallTreePanel } from './CallTreePanel'
+import { gridViews, type GridView } from './grids'
+import { GridViewer } from './GridViewer'
+import { lineAccesses } from './indexing'
 import { nodeSummary, structureViews } from './structures'
 import { StructuresPanel } from './StructuresPanel'
 import { CodeEditor } from './CodeEditor'
@@ -33,6 +38,8 @@ export default function VisualizerScreen() {
   const [runner, setRunner] = useState<RunnerState>({ kind: 'loading' })
   const [running, setRunning] = useState(false)
   const [trace, setTrace] = useState<TraceResult | null>(null)
+  // The exact source that was traced: line parsing must not see later edits.
+  const [tracedLines, setTracedLines] = useState<string[]>([])
   const [runError, setRunError] = useState<string | null>(null)
   const [stepIndex, setStepIndex] = useState(0)
   const [dirty, setDirty] = useState(false)
@@ -57,6 +64,7 @@ export default function VisualizerScreen() {
     try {
       const result = await pythonRunner().run(source, DEFAULT_MAX_STEPS)
       setTrace(result)
+      setTracedLines(source.split('\n'))
       setStepIndex(0)
       setDirty(false)
     } catch (e) {
@@ -74,6 +82,7 @@ export default function VisualizerScreen() {
   }, [])
 
   const steps = trace?.steps ?? []
+  const callTree = useMemo(() => (trace ? buildCallTree(trace.steps) : null), [trace])
   const last = Math.max(0, steps.length - 1)
   const step: Step | null = steps[Math.min(stepIndex, last)] ?? null
   const prev: Step | null = stepIndex > 0 ? (steps[stepIndex - 1] ?? null) : null
@@ -169,7 +178,8 @@ export default function VisualizerScreen() {
                 <>
                   <Stepper index={stepIndex} count={steps.length} step={step} onGo={go} />
                   <StructuresPanel views={structureViews(step, prev)} />
-                  <FramesPanel step={step} prev={prev} />
+                  {callTree?.recursive && <CallTreePanel tree={callTree} stepIndex={stepIndex} />}
+                  <FramesPanel step={step} prev={prev} lines={tracedLines} />
                 </>
               )}
               <OutputPanel text={stdout} />
@@ -254,30 +264,49 @@ function Stepper({ index, count, step, onGo }: { index: number; count: number; s
   )
 }
 
-function FramesPanel({ step, prev }: { step: Step; prev: Step | null }) {
+function FramesPanel({ step, prev, lines }: { step: Step; prev: Step | null; lines: string[] }) {
   // Innermost frame first, like a debugger's call stack. A list shared by several
   // frames is drawn once, in the innermost frame that holds it.
   const frames = useMemo(() => {
     const drawn = new Set<number>()
+    const fresh = <T extends { ref: number | null }>(views: T[]) => {
+      const out = views.filter((v) => v.ref === null || !drawn.has(v.ref))
+      for (const v of out) if (v.ref !== null) drawn.add(v.ref)
+      return out
+    }
     return step.stack
       .map((f, depth) => ({ f, depth }))
       .reverse()
       .map(({ f, depth }) => {
-        const arrays = arrayViews(step, f, prev, prev?.stack[depth]).filter((v) => v.ref === null || !drawn.has(v.ref))
-        for (const v of arrays) if (v.ref !== null) drawn.add(v.ref)
-        return { f, depth, arrays }
+        // The cells each frame's current line is about to read and write. Only
+        // meaningful before a line runs, not at return or exception steps.
+        const ints = Object.fromEntries(
+          Object.entries(f.locals).filter((e): e is [string, number] => typeof e[1] === 'number' && Number.isInteger(e[1])),
+        )
+        const isLineStep = step.event === 'line' || depth < step.stack.length - 1
+        const accesses = isLineStep ? lineAccesses(lines[f.line - 1] ?? '', ints) : []
+        const prevFrame = prev?.stack[depth]
+        const grids = fresh(gridViews(step, f, prev, prevFrame, accesses))
+        // Row/column variables of a grid index the grid, not this frame's 1D arrays
+        // (in LCS, i and j point into dp while the code reads a[i - 1]).
+        const gridIndexNames = new Set(grids.flatMap((g) => [...g.rowPointers, ...g.colPointers].map((p) => p.name)))
+        const arrays = fresh(arrayViews(step, f, prev, prevFrame, accesses)).map((v) =>
+          gridIndexNames.size === 0 ? v : { ...v, pointers: v.pointers.filter((p) => !gridIndexNames.has(p.name)), range: null },
+        )
+        return { f, depth, arrays, grids }
       })
-  }, [step, prev])
+  }, [step, prev, lines])
   return (
     <section className="space-y-2">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         Call stack
       </h3>
-      {frames.map(({ f, depth, arrays }, i) => (
+      {frames.map(({ f, depth, arrays, grids }, i) => (
         <FrameView
           key={depth}
           frame={f}
           arrays={arrays}
+          grids={grids}
           step={step}
           prevFrame={prev?.stack[depth]}
           prev={prev}
@@ -291,6 +320,7 @@ function FramesPanel({ step, prev }: { step: Step; prev: Step | null }) {
 function FrameView({
   frame,
   arrays,
+  grids,
   step,
   prev,
   prevFrame,
@@ -298,6 +328,7 @@ function FrameView({
 }: {
   frame: Frame
   arrays: ArrayView[]
+  grids: GridView[]
   step: Step
   prev: Step | null
   prevFrame: Frame | undefined
@@ -316,8 +347,11 @@ function FrameView({
         <span className="font-semibold">{frame.fn === '<module>' ? 'global' : `${frame.fn}()`}</span>
         <span className="text-slate-400"> · line {frame.line}</span>
       </p>
-      {arrays.length > 0 && (
+      {(arrays.length > 0 || grids.length > 0) && (
         <div className="mb-3 space-y-3">
+          {grids.map((view) => (
+            <GridViewer key={view.name} view={view} />
+          ))}
           {arrays.map((view) => (
             <ArrayViewer key={view.name} view={view} />
           ))}

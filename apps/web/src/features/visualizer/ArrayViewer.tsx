@@ -60,9 +60,12 @@ export function ArrayViewer({ view }: { view: ArrayView }) {
                     i === 0 ? 'rounded-l border-l' : '',
                     i === cells.length - 1 ? 'rounded-r' : '',
                     pointed ? 'border-indigo-400 dark:border-indigo-500' : 'border-slate-300 dark:border-slate-700',
+                    cell.target ? 'outline outline-2 -outline-offset-2 outline-indigo-500' : '',
                     cell.changed
                       ? 'bg-amber-200 dark:bg-amber-800/70'
-                      : inRange(i)
+                      : cell.read
+                        ? 'bg-sky-100 dark:bg-sky-900/60'
+                        : inRange(i)
                         ? 'bg-indigo-50 dark:bg-indigo-950/60'
                         : 'bg-white dark:bg-slate-900',
                   ].join(' ')}

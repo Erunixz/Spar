@@ -2,7 +2,9 @@
 
 Find the interview patterns you're weakest at, then spend whatever time you have on exactly those. Free, local-first, with its ML running in your browser.
 
-> Status: early development (Phase 2, Pattern Rush MVP). See [BUILD_PLAN.md](BUILD_PLAN.md).
+![The visualizer filling a dynamic-programming table for longest common subsequence: the cell about to be written is outlined and the cells it reads are blue](docs/media/visualizer-dp-grid.gif)
+
+> Status: early development (Phase 3 complete: drills, recommender and visualizer). See [BUILD_PLAN.md](BUILD_PLAN.md).
 
 ## What works today
 
@@ -13,7 +15,7 @@ Find the interview patterns you're weakest at, then spend whatever time you have
 - **Recommendations:** every pick says why it was chosen ("Sliding Window: low mastery, not practiced in over a week"). One set of rules ranks both drills and LeetCode problems: weakness and uncertainty, a 60 to 75% predicted success band, a boost for patterns unpracticed for a week, a penalty while a prerequisite is weak, time fit, and freshness (no LeetCode repeat within a week; unaided solves return only as reviews). Sessions of 30+ minutes include one recommended LeetCode problem.
 - **LeetCode log:** paste a link, number or slug and say how it went (on your own, with hints, or after viewing the solution). Each problem counts once, by its best outcome; only unaided solves move mastery fully.
 - **Skill graph:** 14 patterns in 4 layers, each with an Elo-based mastery estimate, a 95% band, and LeetCode solved counts by difficulty. "Share image" turns it into a 1200x630 PNG card (download, copy or share) with your scores and totals and nothing personal.
-- **Visualize:** step through Python line by line in the browser. Lists and strings draw as cells with index pointers (i, j, lo, hi, mid, left, right, ...) as labelled arrows and the lo..hi or left..right range shaded. Linked lists and binary trees (found by their next / left / right fields) draw as boxes and node diagrams, with every frame's pointers marked (so a recursion's path is visible) and just-rewired links highlighted. Also shows the call stack, every variable (changes highlighted), printed output, and the current or failing line highlighted in the editor. Runs CPython (Pyodide) in a Web Worker, so code never touches the page or a server; runaway loops stop at 1,000 steps, and anything stuck in native code is killed after 10 seconds.
+- **Visualize:** step through Python line by line in the browser. Lists and strings draw as cells with index pointers (i, j, lo, hi, mid, left, right, ...) as labelled arrows and the lo..hi or left..right range shaded. Linked lists and binary trees (found by their next / left / right fields) draw as boxes and node diagrams, with every frame's pointers marked (so a recursion's path is visible) and just-rewired links highlighted. 2D lists draw as DP tables showing the cell just written, the cell the current line will write and the cells it reads, and recursive code gets a recursion tree where repeated calls show as cache hits (memoized) or recomputed work. Also shows the call stack, every variable (changes highlighted), printed output, and the current or failing line highlighted in the editor. Runs CPython (Pyodide) in a Web Worker, so code never touches the page or a server; runaway loops stop at 1,000 steps, and anything stuck in native code is killed after 10 seconds.
 - **Local-first:** answers are stored in IndexedDB on your device. No account, no server.
 
 ## How it works

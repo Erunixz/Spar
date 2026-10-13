@@ -3,6 +3,7 @@ import { createRequire } from 'node:module'
 import { dirname, join, resolve } from 'node:path'
 import { loadPyodide, type PyodideInterface } from 'pyodide'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { buildCallTree } from '../features/visualizer/callTree'
 import { formatValue, type Step, type TraceResult } from './trace'
 
 /**
@@ -129,5 +130,40 @@ describe('tracer behaviour', () => {
   it('hides functions, classes and modules at module level but keeps data', () => {
     const r = run('import math\nclass A: pass\ndef f(): pass\nx = 1\ny = 2\n')
     expect(Object.keys(r.steps.at(-1)!.stack[0]!.locals)).toEqual(['x', 'y'])
+  })
+})
+
+describe('recursion tree from real traces', () => {
+  const sample = (name: string) => run(readFileSync(join(samplesDir, `${name}.py`), 'utf8'))
+
+  it('builds the full call tree for naive Fibonacci and flags recomputed calls', () => {
+    const tree = buildCallTree(sample('fib_naive').steps)
+    expect(tree.recursive).toBe(true)
+    expect(tree.nodes).toHaveLength(15) // fib(5) makes 15 calls
+    expect(tree.nodes[0]).toMatchObject({ label: 'fib(5)', parent: null, retval: '5' })
+    const labels = tree.nodes.filter((n) => n.parent === 0).map((n) => n.label)
+    expect(labels).toEqual(['fib(4)', 'fib(3)'])
+    // fib(3) is computed twice with recursion: the second is a 'recomputed' repeat.
+    expect(tree.nodes.filter((n) => n.label === 'fib(3)').map((n) => n.repeat)).toEqual([null, 'recomputed'])
+    expect(tree.nodes.every((n) => n.end !== null)).toBe(true)
+  })
+
+  it('shows memo hits as cached repeats in the memoized version', () => {
+    const tree = buildCallTree(sample('fib_memo').steps)
+    expect(tree.nodes).toHaveLength(9)
+    expect(tree.nodes.filter((n) => n.repeat === 'recomputed')).toEqual([])
+    expect(tree.nodes.filter((n) => n.repeat === 'cached').map((n) => n.label)).toEqual(['fib(2)', 'fib(3)'])
+  })
+
+  it('labels tree-node arguments by value and finds recursion in tree_depth', () => {
+    const tree = buildCallTree(sample('tree_depth').steps)
+    expect(tree.recursive).toBe(true)
+    const depthCalls = tree.nodes.filter((n) => n.fn === 'max_depth')
+    expect(depthCalls[0]!.label).toBe('max_depth(3)')
+    expect(depthCalls.some((n) => n.label === 'max_depth(None)')).toBe(true)
+  })
+
+  it('does not call iterative code recursive', () => {
+    expect(buildCallTree(sample('binary_search').steps).recursive).toBe(false)
   })
 })

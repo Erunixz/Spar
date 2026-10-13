@@ -1,4 +1,5 @@
 import { deref, formatValue, isRef, type Frame, type Step, type Value } from '../../workers/trace'
+import { resolveIndex, type Access } from './indexing'
 
 /** Int variables with these names are drawn as arrows over array cells. */
 const POINTER_NAME =
@@ -20,6 +21,9 @@ export interface Cell {
   /** Display text for the cell, e.g. 5, 'a' or [1, 2]. */
   text: string
   changed: boolean
+  /** The current line is about to write / read this cell. */
+  target: boolean
+  read: boolean
 }
 
 export interface Pointer {
@@ -62,7 +66,13 @@ function sequence(step: Step, v: Value): { kind: ArrayView['kind']; items: Value
 }
 
 /** Finds the frame's arrays and the int pointers that index into them. */
-export function arrayViews(step: Step, frame: Frame, prev: Step | null, prevFrame: Frame | undefined): ArrayView[] {
+export function arrayViews(
+  step: Step,
+  frame: Frame,
+  prev: Step | null,
+  prevFrame: Frame | undefined,
+  accesses: Access[] = [],
+): ArrayView[] {
   const ints = Object.entries(frame.locals).filter(
     (e): e is [string, number] => typeof e[1] === 'number' && Number.isInteger(e[1]) && isPointerName(e[0]),
   )
@@ -72,6 +82,9 @@ export function arrayViews(step: Step, frame: Frame, prev: Step | null, prevFram
     if (!seq) continue
     const length = seq.items.length
     const shown = seq.items.slice(0, MAX_CELLS)
+    const mine = accesses.filter((a) => a.name === name && a.indices.length === 1)
+    const touched = (i: number, write: boolean) =>
+      mine.some((a) => a.write === write && resolveIndex(a.indices[0]!, length) === i)
 
     // Compare against the same variable one step earlier to flag changed cells.
     const before = prevFrame && prev ? prevFrame.locals[name] : undefined
@@ -83,7 +96,12 @@ export function arrayViews(step: Step, frame: Frame, prev: Step | null, prevFram
       const oldText = old === undefined || !prev ? null : seq.kind === 'str' ? String(old) : formatValue(prev, old)
       // Only call it a change when the same list was mutated in place, or a string/list grew.
       const changed = prev !== null && (sameObject || seq.kind === 'str') && oldText !== null && oldText !== text
-      return { text, changed: changed || (prev !== null && sameObject && old === undefined) }
+      return {
+        text,
+        changed: changed || (prev !== null && sameObject && old === undefined),
+        target: touched(i, true),
+        read: touched(i, false),
+      }
     })
 
     const pointers = ints.filter(([, i]) => i >= -1 && i <= length).map(([n, index]) => ({ name: n, index }))
