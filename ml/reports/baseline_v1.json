@@ -1,0 +1,228 @@
+{
+  "model": "tfidf-word-1-2gram + one-vs-rest logistic regression (class_weight=balanced)",
+  "data_version": "v1",
+  "selected": {
+    "C": 4,
+    "threshold": 0.35,
+    "val_macro_f1": 0.4802
+  },
+  "search": [
+    {
+      "C": 0.5,
+      "threshold": 0.45,
+      "val_macro_f1": 0.4659
+    },
+    {
+      "C": 1,
+      "threshold": 0.45,
+      "val_macro_f1": 0.4791
+    },
+    {
+      "C": 2,
+      "threshold": 0.4,
+      "val_macro_f1": 0.4781
+    },
+    {
+      "C": 4,
+      "threshold": 0.35,
+      "val_macro_f1": 0.4802
+    },
+    {
+      "C": 8,
+      "threshold": 0.35,
+      "val_macro_f1": 0.4755
+    },
+    {
+      "C": 16,
+      "threshold": 0.4,
+      "val_macro_f1": 0.4747
+    }
+  ],
+  "fit_seconds": 1.82,
+  "val": {
+    "threshold": 0.35,
+    "micro_f1": 0.5222,
+    "macro_f1": 0.4802,
+    "macro_f1_support_ge_5": 0.4769,
+    "top1_accuracy": 0.5885,
+    "per_pattern": {
+      "arrays-hashing": {
+        "precision": 0.527,
+        "recall": 0.667,
+        "f1": 0.589,
+        "support": 72
+      },
+      "prefix-sum": {
+        "precision": 0.281,
+        "recall": 0.762,
+        "f1": 0.41,
+        "support": 21
+      },
+      "two-pointers": {
+        "precision": 0.208,
+        "recall": 0.294,
+        "f1": 0.244,
+        "support": 17
+      },
+      "sliding-window": {
+        "precision": 0.368,
+        "recall": 0.737,
+        "f1": 0.491,
+        "support": 19
+      },
+      "binary-search": {
+        "precision": 0.258,
+        "recall": 0.533,
+        "f1": 0.348,
+        "support": 30
+      },
+      "monotonic-stack": {
+        "precision": 0.391,
+        "recall": 0.529,
+        "f1": 0.45,
+        "support": 17
+      },
+      "intervals": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "greedy": {
+        "precision": 0.449,
+        "recall": 0.946,
+        "f1": 0.609,
+        "support": 56
+      },
+      "linked-list": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "trees": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 15
+      },
+      "heap": {
+        "precision": 0.239,
+        "recall": 0.611,
+        "f1": 0.344,
+        "support": 18
+      },
+      "graphs": {
+        "precision": 0.579,
+        "recall": 0.88,
+        "f1": 0.698,
+        "support": 25
+      },
+      "backtracking": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 5
+      },
+      "dynamic-programming": {
+        "precision": 0.403,
+        "recall": 0.814,
+        "f1": 0.539,
+        "support": 59
+      }
+    }
+  },
+  "test": {
+    "threshold": 0.35,
+    "micro_f1": 0.4553,
+    "macro_f1": 0.4801,
+    "macro_f1_support_ge_5": 0.4212,
+    "top1_accuracy": 0.5088,
+    "per_pattern": {
+      "arrays-hashing": {
+        "precision": 0.513,
+        "recall": 0.73,
+        "f1": 0.602,
+        "support": 111
+      },
+      "prefix-sum": {
+        "precision": 0.221,
+        "recall": 0.326,
+        "f1": 0.263,
+        "support": 46
+      },
+      "two-pointers": {
+        "precision": 0.13,
+        "recall": 0.353,
+        "f1": 0.19,
+        "support": 17
+      },
+      "sliding-window": {
+        "precision": 0.36,
+        "recall": 0.5,
+        "f1": 0.419,
+        "support": 36
+      },
+      "binary-search": {
+        "precision": 0.23,
+        "recall": 0.4,
+        "f1": 0.292,
+        "support": 50
+      },
+      "monotonic-stack": {
+        "precision": 0.16,
+        "recall": 0.4,
+        "f1": 0.229,
+        "support": 10
+      },
+      "intervals": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.667,
+        "support": 2
+      },
+      "greedy": {
+        "precision": 0.331,
+        "recall": 0.833,
+        "f1": 0.474,
+        "support": 60
+      },
+      "linked-list": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "trees": {
+        "precision": 1.0,
+        "recall": 0.941,
+        "f1": 0.97,
+        "support": 17
+      },
+      "heap": {
+        "precision": 0.229,
+        "recall": 0.423,
+        "f1": 0.297,
+        "support": 26
+      },
+      "graphs": {
+        "precision": 0.339,
+        "recall": 0.655,
+        "f1": 0.447,
+        "support": 29
+      },
+      "backtracking": {
+        "precision": 0.286,
+        "recall": 0.4,
+        "f1": 0.333,
+        "support": 5
+      },
+      "dynamic-programming": {
+        "precision": 0.429,
+        "recall": 0.722,
+        "f1": 0.538,
+        "support": 97
+      }
+    }
+  }
+}

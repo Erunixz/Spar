@@ -228,7 +228,7 @@ Cloudflare only serves static files and stores opt-in responses; the browser run
 | API | Cloudflare Workers + Hono | 100,000 requests/day free |
 | Database | Cloudflare D1 | Free daily allowance of [5M row reads and 100K row writes](https://eastondev.com/blog/en/posts/dev/20260526-cloudflare-free-limits/); since Sept 1, 2026, over-limit queries [fail instead of billing](https://developers.cloudflare.com/changelog/post/2026-09-01-d1-free-tier-limit-enforcement/) |
 | Auth | GitHub and Google OAuth in the Worker (e.g. the Arctic library); session in an HttpOnly, Secure, SameSite=Lax cookie | Both free; your audience already has GitHub, Google covers everyone else. Verify library support for Workers at setup. Email magic links skipped for now: they need a paid or rate-limited email sender |
-| Training | PyTorch + Hugging Face on Kaggle/Colab free GPUs; Optimum for ONNX export and int8 | Free GPUs, browser-ready output |
+| Training | PyTorch + Hugging Face on the local RTX 4060 laptop GPU (8 GB, CUDA); Kaggle/Colab free GPUs as fallback; Optimum for ONNX export and int8 | No cloud dependency or quota, browser-ready output |
 | Calibration jobs | GitHub Actions cron running Python (py-irt or girth) | Free for public repos; writes item parameters to D1 |
 | Domain | A subdomain of erfanzamani.com, or free \*.pages.dev | No extra cost |
 
@@ -407,7 +407,7 @@ onsite/
 1. Create a public GitHub repo (public keeps Actions free and doubles as portfolio).
 2. Install Node, pnpm, Python and wrangler; run the web app with Vite, and the Worker with a local D1 via wrangler dev.
 3. Create a Hugging Face account and public model repos for the ONNX files.
-4. Use Kaggle or Colab notebooks with the free GPU for training.
+4. Train on the local GPU (RTX 4060, 8 GB) from ml/.venv (see ml/requirements.txt); Kaggle or Colab free GPUs are the fallback.
 5. Register development OAuth apps with localhost callback URLs: a GitHub OAuth app and a Google OAuth client (Google Cloud console, free). Their secrets go in apps/api/.dev.vars, never in VITE\_\* variables.
 
 **Final phase (deploy):**

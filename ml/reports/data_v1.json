@@ -1,0 +1,100 @@
+{
+  "version": "v1",
+  "source": {
+    "dataset": "newfacade/LeetCodeDataset",
+    "files_sha256": {
+      "LeetCodeDataset-test.jsonl": "aec951945feb555b4c72783519452a7a0437ca8c6e5624a83d0ae888718fa4ed",
+      "LeetCodeDataset-train.jsonl": "ef7d64d34b092859607c1010bdd23540860a8cfff2ed7aeb0fe82e0ad524919b"
+    },
+    "note": "Problem text is used for training only and is never committed or shown in the app."
+  },
+  "labelling": {
+    "mapping_sha256": "8d6cb408076bffb044962ec12142739981d00c1b317069cffc4a99a1becfdfde",
+    "patterns": [
+      "arrays-hashing",
+      "prefix-sum",
+      "two-pointers",
+      "sliding-window",
+      "binary-search",
+      "monotonic-stack",
+      "intervals",
+      "greedy",
+      "linked-list",
+      "trees",
+      "heap",
+      "graphs",
+      "backtracking",
+      "dynamic-programming"
+    ]
+  },
+  "problems_total": 2869,
+  "dropped_no_pattern": 605,
+  "splits": {
+    "train": {
+      "rows": 1698,
+      "date_from": "2015-08-07",
+      "date_to": "2023-01-29",
+      "label_counts": {
+        "arrays-hashing": 429,
+        "prefix-sum": 122,
+        "two-pointers": 169,
+        "sliding-window": 89,
+        "binary-search": 191,
+        "monotonic-stack": 130,
+        "intervals": 18,
+        "greedy": 283,
+        "linked-list": 43,
+        "trees": 161,
+        "heap": 123,
+        "graphs": 219,
+        "backtracking": 91,
+        "dynamic-programming": 407
+      },
+      "mean_labels_per_problem": 1.46
+    },
+    "val": {
+      "rows": 226,
+      "date_from": "2023-02-05",
+      "date_to": "2023-12-10",
+      "label_counts": {
+        "arrays-hashing": 72,
+        "prefix-sum": 21,
+        "two-pointers": 17,
+        "sliding-window": 19,
+        "binary-search": 30,
+        "monotonic-stack": 17,
+        "intervals": 0,
+        "greedy": 56,
+        "linked-list": 2,
+        "trees": 15,
+        "heap": 18,
+        "graphs": 25,
+        "backtracking": 5,
+        "dynamic-programming": 59
+      },
+      "mean_labels_per_problem": 1.58
+    },
+    "test": {
+      "rows": 340,
+      "date_from": "2023-12-10",
+      "date_to": "2025-03-23",
+      "label_counts": {
+        "arrays-hashing": 111,
+        "prefix-sum": 46,
+        "two-pointers": 17,
+        "sliding-window": 36,
+        "binary-search": 50,
+        "monotonic-stack": 10,
+        "intervals": 2,
+        "greedy": 60,
+        "linked-list": 3,
+        "trees": 17,
+        "heap": 26,
+        "graphs": 29,
+        "backtracking": 5,
+        "dynamic-programming": 97
+      },
+      "mean_labels_per_problem": 1.5
+    }
+  }
+}
