@@ -1,0 +1,385 @@
+{
+  "data_version": "v1",
+  "test_rows": 340,
+  "selection": {
+    "shipped": "distilled MiniLM + TF-IDF",
+    "student_checkpoint": "minilm-distilled",
+    "weight_on_student": 0.4,
+    "threshold": 0.35,
+    "chosen_by": "validation macro-F1; size budget ~30 MB for the browser"
+  },
+  "test": {
+    "tfidf_baseline": {
+      "threshold": 0.35,
+      "micro_f1": 0.4553,
+      "macro_f1": 0.4801,
+      "macro_f1_support_ge_5": 0.4212,
+      "top1_accuracy": 0.5088,
+      "per_pattern": {
+        "arrays-hashing": {
+          "precision": 0.513,
+          "recall": 0.73,
+          "f1": 0.602,
+          "support": 111
+        },
+        "prefix-sum": {
+          "precision": 0.221,
+          "recall": 0.326,
+          "f1": 0.263,
+          "support": 46
+        },
+        "two-pointers": {
+          "precision": 0.13,
+          "recall": 0.353,
+          "f1": 0.19,
+          "support": 17
+        },
+        "sliding-window": {
+          "precision": 0.36,
+          "recall": 0.5,
+          "f1": 0.419,
+          "support": 36
+        },
+        "binary-search": {
+          "precision": 0.23,
+          "recall": 0.4,
+          "f1": 0.292,
+          "support": 50
+        },
+        "monotonic-stack": {
+          "precision": 0.16,
+          "recall": 0.4,
+          "f1": 0.229,
+          "support": 10
+        },
+        "intervals": {
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.667,
+          "support": 2
+        },
+        "greedy": {
+          "precision": 0.331,
+          "recall": 0.833,
+          "f1": 0.474,
+          "support": 60
+        },
+        "linked-list": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "trees": {
+          "precision": 1.0,
+          "recall": 0.941,
+          "f1": 0.97,
+          "support": 17
+        },
+        "heap": {
+          "precision": 0.229,
+          "recall": 0.423,
+          "f1": 0.297,
+          "support": 26
+        },
+        "graphs": {
+          "precision": 0.339,
+          "recall": 0.655,
+          "f1": 0.447,
+          "support": 29
+        },
+        "backtracking": {
+          "precision": 0.286,
+          "recall": 0.4,
+          "f1": 0.333,
+          "support": 5
+        },
+        "dynamic-programming": {
+          "precision": 0.429,
+          "recall": 0.722,
+          "f1": 0.538,
+          "support": 97
+        }
+      }
+    },
+    "minilm_distilled": {
+      "threshold": 0.3,
+      "micro_f1": 0.4237,
+      "macro_f1": 0.4114,
+      "macro_f1_support_ge_5": 0.3966,
+      "top1_accuracy": 0.4882,
+      "per_pattern": {
+        "arrays-hashing": {
+          "precision": 0.518,
+          "recall": 0.649,
+          "f1": 0.576,
+          "support": 111
+        },
+        "prefix-sum": {
+          "precision": 0.206,
+          "recall": 0.304,
+          "f1": 0.246,
+          "support": 46
+        },
+        "two-pointers": {
+          "precision": 0.1,
+          "recall": 0.294,
+          "f1": 0.149,
+          "support": 17
+        },
+        "sliding-window": {
+          "precision": 0.39,
+          "recall": 0.444,
+          "f1": 0.416,
+          "support": 36
+        },
+        "binary-search": {
+          "precision": 0.224,
+          "recall": 0.44,
+          "f1": 0.297,
+          "support": 50
+        },
+        "monotonic-stack": {
+          "precision": 0.105,
+          "recall": 0.2,
+          "f1": 0.138,
+          "support": 10
+        },
+        "intervals": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 2
+        },
+        "greedy": {
+          "precision": 0.291,
+          "recall": 0.833,
+          "f1": 0.431,
+          "support": 60
+        },
+        "linked-list": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "trees": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 17
+        },
+        "heap": {
+          "precision": 0.148,
+          "recall": 0.346,
+          "f1": 0.207,
+          "support": 26
+        },
+        "graphs": {
+          "precision": 0.333,
+          "recall": 0.552,
+          "f1": 0.416,
+          "support": 29
+        },
+        "backtracking": {
+          "precision": 0.333,
+          "recall": 0.4,
+          "f1": 0.364,
+          "support": 5
+        },
+        "dynamic-programming": {
+          "precision": 0.411,
+          "recall": 0.711,
+          "f1": 0.521,
+          "support": 97
+        }
+      }
+    },
+    "shipped_minilm_distilled_plus_tfidf": {
+      "threshold": 0.35,
+      "micro_f1": 0.4747,
+      "macro_f1": 0.4923,
+      "macro_f1_support_ge_5": 0.4354,
+      "top1_accuracy": 0.5206,
+      "per_pattern": {
+        "arrays-hashing": {
+          "precision": 0.556,
+          "recall": 0.721,
+          "f1": 0.627,
+          "support": 111
+        },
+        "prefix-sum": {
+          "precision": 0.232,
+          "recall": 0.283,
+          "f1": 0.255,
+          "support": 46
+        },
+        "two-pointers": {
+          "precision": 0.147,
+          "recall": 0.294,
+          "f1": 0.196,
+          "support": 17
+        },
+        "sliding-window": {
+          "precision": 0.41,
+          "recall": 0.444,
+          "f1": 0.427,
+          "support": 36
+        },
+        "binary-search": {
+          "precision": 0.259,
+          "recall": 0.44,
+          "f1": 0.326,
+          "support": 50
+        },
+        "monotonic-stack": {
+          "precision": 0.176,
+          "recall": 0.3,
+          "f1": 0.222,
+          "support": 10
+        },
+        "intervals": {
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.667,
+          "support": 2
+        },
+        "greedy": {
+          "precision": 0.325,
+          "recall": 0.883,
+          "f1": 0.475,
+          "support": 60
+        },
+        "linked-list": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "trees": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 17
+        },
+        "heap": {
+          "precision": 0.234,
+          "recall": 0.423,
+          "f1": 0.301,
+          "support": 26
+        },
+        "graphs": {
+          "precision": 0.373,
+          "recall": 0.655,
+          "f1": 0.475,
+          "support": 29
+        },
+        "backtracking": {
+          "precision": 0.333,
+          "recall": 0.4,
+          "f1": 0.364,
+          "support": 5
+        },
+        "dynamic-programming": {
+          "precision": 0.457,
+          "recall": 0.711,
+          "f1": 0.556,
+          "support": 97
+        }
+      }
+    },
+    "teacher_roberta_plus_tfidf": {
+      "threshold": 0.4,
+      "micro_f1": 0.4853,
+      "macro_f1": 0.5107,
+      "macro_f1_support_ge_5": 0.4569,
+      "top1_accuracy": 0.5588,
+      "per_pattern": {
+        "arrays-hashing": {
+          "precision": 0.558,
+          "recall": 0.694,
+          "f1": 0.618,
+          "support": 111
+        },
+        "prefix-sum": {
+          "precision": 0.31,
+          "recall": 0.391,
+          "f1": 0.346,
+          "support": 46
+        },
+        "two-pointers": {
+          "precision": 0.182,
+          "recall": 0.353,
+          "f1": 0.24,
+          "support": 17
+        },
+        "sliding-window": {
+          "precision": 0.425,
+          "recall": 0.472,
+          "f1": 0.447,
+          "support": 36
+        },
+        "binary-search": {
+          "precision": 0.242,
+          "recall": 0.32,
+          "f1": 0.276,
+          "support": 50
+        },
+        "monotonic-stack": {
+          "precision": 0.182,
+          "recall": 0.4,
+          "f1": 0.25,
+          "support": 10
+        },
+        "intervals": {
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.667,
+          "support": 2
+        },
+        "greedy": {
+          "precision": 0.35,
+          "recall": 0.717,
+          "f1": 0.47,
+          "support": 60
+        },
+        "linked-list": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "trees": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 17
+        },
+        "heap": {
+          "precision": 0.25,
+          "recall": 0.308,
+          "f1": 0.276,
+          "support": 26
+        },
+        "graphs": {
+          "precision": 0.383,
+          "recall": 0.621,
+          "f1": 0.474,
+          "support": 29
+        },
+        "backtracking": {
+          "precision": 0.667,
+          "recall": 0.4,
+          "f1": 0.5,
+          "support": 5
+        },
+        "dynamic-programming": {
+          "precision": 0.508,
+          "recall": 0.691,
+          "f1": 0.585,
+          "support": 97
+        }
+      }
+    }
+  }
+}

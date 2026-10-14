@@ -1,0 +1,183 @@
+{
+  "base_model": "FacebookAI/roberta-base",
+  "data_version": "v1",
+  "params": {
+    "model": "FacebookAI/roberta-base",
+    "name": "roberta",
+    "epochs": 10,
+    "lr": 3e-05,
+    "batch": 16,
+    "max_len": 384,
+    "seed": 13
+  },
+  "parameters_millions": 124.7,
+  "device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "train_seconds": 350.8,
+  "best_epoch": 8,
+  "threshold": 0.35,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.6781,
+      "threshold": 0.2,
+      "val_macro_f1": 0.2736,
+      "val_top1": 0.3805
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.5382,
+      "threshold": 0.2,
+      "val_macro_f1": 0.3686,
+      "val_top1": 0.4115
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.483,
+      "threshold": 0.3,
+      "val_macro_f1": 0.4091,
+      "val_top1": 0.4823
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.4293,
+      "threshold": 0.4,
+      "val_macro_f1": 0.4404,
+      "val_top1": 0.4867
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.3804,
+      "threshold": 0.35,
+      "val_macro_f1": 0.4742,
+      "val_top1": 0.5752
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.3349,
+      "threshold": 0.35,
+      "val_macro_f1": 0.4672,
+      "val_top1": 0.5841
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.2979,
+      "threshold": 0.5,
+      "val_macro_f1": 0.4696,
+      "val_top1": 0.6195
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.2632,
+      "threshold": 0.35,
+      "val_macro_f1": 0.4775,
+      "val_top1": 0.615
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.241,
+      "threshold": 0.5,
+      "val_macro_f1": 0.4712,
+      "val_top1": 0.6283
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.2271,
+      "threshold": 0.35,
+      "val_macro_f1": 0.4719,
+      "val_top1": 0.6372
+    }
+  ],
+  "val": {
+    "threshold": 0.35,
+    "micro_f1": 0.5083,
+    "macro_f1": 0.4775,
+    "macro_f1_support_ge_5": 0.4738,
+    "top1_accuracy": 0.615,
+    "per_pattern": {
+      "arrays-hashing": {
+        "precision": 0.581,
+        "recall": 0.694,
+        "f1": 0.633,
+        "support": 72
+      },
+      "prefix-sum": {
+        "precision": 0.205,
+        "recall": 0.429,
+        "f1": 0.277,
+        "support": 21
+      },
+      "two-pointers": {
+        "precision": 0.229,
+        "recall": 0.471,
+        "f1": 0.308,
+        "support": 17
+      },
+      "sliding-window": {
+        "precision": 0.368,
+        "recall": 0.737,
+        "f1": 0.491,
+        "support": 19
+      },
+      "binary-search": {
+        "precision": 0.261,
+        "recall": 0.4,
+        "f1": 0.316,
+        "support": 30
+      },
+      "monotonic-stack": {
+        "precision": 0.286,
+        "recall": 0.471,
+        "f1": 0.356,
+        "support": 17
+      },
+      "intervals": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "greedy": {
+        "precision": 0.5,
+        "recall": 0.786,
+        "f1": 0.611,
+        "support": 56
+      },
+      "linked-list": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "trees": {
+        "precision": 0.938,
+        "recall": 1.0,
+        "f1": 0.968,
+        "support": 15
+      },
+      "heap": {
+        "precision": 0.314,
+        "recall": 0.611,
+        "f1": 0.415,
+        "support": 18
+      },
+      "graphs": {
+        "precision": 0.6,
+        "recall": 0.84,
+        "f1": 0.7,
+        "support": 25
+      },
+      "backtracking": {
+        "precision": 0.091,
+        "recall": 0.2,
+        "f1": 0.125,
+        "support": 5
+      },
+      "dynamic-programming": {
+        "precision": 0.412,
+        "recall": 0.593,
+        "f1": 0.486,
+        "support": 59
+      }
+    }
+  }
+}

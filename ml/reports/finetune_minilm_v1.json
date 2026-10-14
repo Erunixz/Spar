@@ -1,0 +1,183 @@
+{
+  "base_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "data_version": "v1",
+  "params": {
+    "model": "sentence-transformers/all-MiniLM-L6-v2",
+    "name": "minilm",
+    "epochs": 10,
+    "lr": 0.0001,
+    "batch": 32,
+    "max_len": 384,
+    "seed": 13
+  },
+  "parameters_millions": 22.7,
+  "device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "train_seconds": 65.8,
+  "best_epoch": 10,
+  "threshold": 0.25,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.715,
+      "threshold": 0.15,
+      "val_macro_f1": 0.1961,
+      "val_top1": 0.3186
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.6012,
+      "threshold": 0.3,
+      "val_macro_f1": 0.2742,
+      "val_top1": 0.3451
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.5545,
+      "threshold": 0.25,
+      "val_macro_f1": 0.3564,
+      "val_top1": 0.4336
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.5132,
+      "threshold": 0.3,
+      "val_macro_f1": 0.3699,
+      "val_top1": 0.3761
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.4807,
+      "threshold": 0.3,
+      "val_macro_f1": 0.3851,
+      "val_top1": 0.4292
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.4532,
+      "threshold": 0.3,
+      "val_macro_f1": 0.3823,
+      "val_top1": 0.4823
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.432,
+      "threshold": 0.35,
+      "val_macro_f1": 0.3729,
+      "val_top1": 0.4823
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.401,
+      "threshold": 0.35,
+      "val_macro_f1": 0.3883,
+      "val_top1": 0.4735
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.3882,
+      "threshold": 0.25,
+      "val_macro_f1": 0.3913,
+      "val_top1": 0.4867
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.3777,
+      "threshold": 0.25,
+      "val_macro_f1": 0.3934,
+      "val_top1": 0.4867
+    }
+  ],
+  "val": {
+    "threshold": 0.25,
+    "micro_f1": 0.3961,
+    "macro_f1": 0.3934,
+    "macro_f1_support_ge_5": 0.3756,
+    "top1_accuracy": 0.4867,
+    "per_pattern": {
+      "arrays-hashing": {
+        "precision": 0.409,
+        "recall": 0.778,
+        "f1": 0.536,
+        "support": 72
+      },
+      "prefix-sum": {
+        "precision": 0.121,
+        "recall": 0.333,
+        "f1": 0.177,
+        "support": 21
+      },
+      "two-pointers": {
+        "precision": 0.118,
+        "recall": 0.588,
+        "f1": 0.196,
+        "support": 17
+      },
+      "sliding-window": {
+        "precision": 0.2,
+        "recall": 0.474,
+        "f1": 0.281,
+        "support": 19
+      },
+      "binary-search": {
+        "precision": 0.226,
+        "recall": 0.7,
+        "f1": 0.341,
+        "support": 30
+      },
+      "monotonic-stack": {
+        "precision": 0.173,
+        "recall": 0.529,
+        "f1": 0.261,
+        "support": 17
+      },
+      "intervals": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "greedy": {
+        "precision": 0.323,
+        "recall": 0.893,
+        "f1": 0.474,
+        "support": 56
+      },
+      "linked-list": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "trees": {
+        "precision": 0.833,
+        "recall": 1.0,
+        "f1": 0.909,
+        "support": 15
+      },
+      "heap": {
+        "precision": 0.163,
+        "recall": 0.444,
+        "f1": 0.239,
+        "support": 18
+      },
+      "graphs": {
+        "precision": 0.489,
+        "recall": 0.88,
+        "f1": 0.629,
+        "support": 25
+      },
+      "backtracking": {
+        "precision": 0.03,
+        "recall": 0.2,
+        "f1": 0.053,
+        "support": 5
+      },
+      "dynamic-programming": {
+        "precision": 0.264,
+        "recall": 0.932,
+        "f1": 0.412,
+        "support": 59
+      }
+    }
+  }
+}

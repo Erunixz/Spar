@@ -21,16 +21,34 @@ Without an NVIDIA GPU, install plain `torch==2.14.1` (CPU); the baseline doesn't
 |---|---|---|
 | Data | `.venv/Scripts/python -m src.prepare_data` | `data/v1/*.parquet` (git-ignored), `reports/data_v1.json` |
 | Baseline | `.venv/Scripts/python -m src.train_baseline` | `reports/baseline_v1.json` |
+| Fine-tune | `.venv/Scripts/python -m src.train_classifier --model <hf id> --name <name>` | `checkpoints/<name>/`, `reports/finetune_<name>_v1.json` |
+| Teacher | `.venv/Scripts/python -m src.teacher_oof` (5-fold, ~16 min on an RTX 4060) | `data/v1/teacher_train.npy`, `reports/teacher_oof_v1.json` |
+| Distil | `... src.train_classifier --model sentence-transformers/all-MiniLM-L6-v2 --name minilm-distilled --lr 1e-4 --batch 32 --epochs 30 --distill data/v1/teacher_train.npy --alpha 0.5` | `checkpoints/minilm-distilled/` |
+| Final test | `.venv/Scripts/python -m src.evaluate_final` (run once) | `reports/final_v1.json` |
 
 - **Labels:** LeetCode topic tags mapped onto Spar's 14 patterns in `src/patterns.py` (tested against `content/patterns.yaml`). Problems that map to no pattern are dropped.
 - **Split:** by release date, so the test set is the newest problems the model could not have seen: oldest 75% train, next 10% validation, newest 15% test.
 - **Metrics** (`src/metrics.py`, shared by every model): micro and macro F1, macro F1 over patterns with at least 5 test examples, top-1 accuracy (the drills ask for one answer), and per-pattern precision, recall and F1. Thresholds and hyperparameters are tuned on validation only.
 
-### Results so far (test = 340 newest problems)
+### Results
 
-| Model | Macro-F1 | Macro-F1 (support >= 5) | Micro-F1 | Top-1 accuracy |
-|---|---|---|---|---|
-| TF-IDF + logistic regression | 0.48 | 0.42 | 0.46 | 0.51 |
+Model selection used the validation split only; the shipped configuration was frozen before the
+test split (340 newest problems, Dec 2023 to Mar 2025) was scored once.
+
+| Model (test set) | Size in browser | Macro-F1 | Macro-F1 (n >= 5) | Micro-F1 | Top-1 |
+|---|---|---|---|---|---|
+| TF-IDF + logistic regression | ~2 MB | 0.480 | 0.421 | 0.455 | 0.509 |
+| Distilled MiniLM-L6 alone | ~25 MB | 0.411 | 0.397 | 0.424 | 0.488 |
+| **Shipped: distilled MiniLM + TF-IDF (0.4 / 0.6)** | ~27 MB | **0.492** | **0.435** | **0.475** | **0.521** |
+| Teacher: RoBERTa-base + TF-IDF (0.4 / 0.6), reference | ~127 MB | 0.511 | 0.457 | 0.485 | 0.559 |
+
+Validation ablation (MiniLM, 30 epochs): distillation from the out-of-fold teacher lifts macro-F1
+from 0.436 to 0.489 and top-1 from 0.518 to 0.549.
+
+Honest reading: with ~1,700 training problems and noisy tag-derived labels, a fine-tuned transformer
+alone does not beat TF-IDF; blending them does. Test differences of 1 to 2 points are within the
+noise of a 340-problem set. Keyword patterns (trees, linked lists, graphs) are easy for every model;
+shape patterns (two pointers, monotonic stack, prefix sum) remain hard.
 
 ## Data and licensing
 
