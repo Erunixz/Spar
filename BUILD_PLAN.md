@@ -356,6 +356,7 @@ Nine phases, each ending in a working app you can demo locally. Deployment is Ph
    - Done: a friend finishes placement, a session and a mock on a phone without help.
 8. **Deploy and launch.** Goal: a live link and real users.
    - Cloudflare Pages, Workers and D1 in production; subdomain of erfanzamani.com; nightly calibration on; error reporting.
+   - Large binaries: ONNX Runtime's WebAssembly (25.6 MiB) exceeds Pages' 25 MiB per-file limit, and model weights shouldn't live in git. Host them with the published model on Hugging Face (or Cloudflare R2's free tier) and point VITE_PATTERN_MODEL_URL and the ORT path there.
    - Launch posts per the spec; collect retention and model metrics for the README and resume.
 9. **Re-estimation from usage.** Goal: replace every hand-set weight with one learned from real data.
    - Inputs: synced responses, LeetCode logs and the recommendation log (plus your own pre-launch JSON export), each row tagged with the params version that produced it.

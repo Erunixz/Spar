@@ -51,11 +51,14 @@ def torch_probs(model, tok, texts: list[str]) -> np.ndarray:
     return np.concatenate(out)
 
 
-def onnx_probs(path: Path, tok, texts: list[str]) -> np.ndarray:
+def onnx_probs(path: Path, tok, texts: list[str], batch: int = 32) -> np.ndarray:
+    # Dynamic int8 quantization scales activations per tensor, so a padded batch
+    # gives slightly different outputs than one text at a time. The browser runs
+    # one text at a time: use batch=1 wherever int8 numbers must match it.
     sess = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
     out = []
-    for i in range(0, len(texts), 32):
-        enc = tok(texts[i : i + 32], truncation=True, max_length=MAX_LEN, padding=True, return_tensors="np")
+    for i in range(0, len(texts), batch):
+        enc = tok(texts[i : i + batch], truncation=True, max_length=MAX_LEN, padding=True, return_tensors="np")
         (logits,) = sess.run(["logits"], {"input_ids": enc["input_ids"].astype(np.int64), "attention_mask": enc["attention_mask"].astype(np.int64)})
         out.append(sigmoid(logits))
     return np.concatenate(out)
@@ -104,7 +107,7 @@ def main() -> None:
     texts = list(val["text"])
     p_torch = torch_probs(model, tok, texts)
     p_fp32 = onnx_probs(fp32, tok, texts)
-    p_int8 = onnx_probs(int8, tok, texts)
+    p_int8 = onnx_probs(int8, tok, texts, batch=1)  # as the browser runs it
 
     c = json.load(open(ROOT / "reports" / f"baseline_{DATA_VERSION}.json"))["selected"]["C"]
     tfidf = build(c).fit(train["text"], y_train)
@@ -127,7 +130,7 @@ def main() -> None:
         "weight_on_student": w,
         "cases": [
             {"text": t, "tfidf": [round(float(x), 6) for x in pt], "student_int8": [round(float(x), 6) for x in ps]}
-            for t, pt, ps in zip(prompts, tfidf.predict_proba(prompts), onnx_probs(int8, tok, prompts))
+            for t, pt, ps in zip(prompts, tfidf.predict_proba(prompts), onnx_probs(int8, tok, prompts, batch=1))
         ],
     }
     (OUT / "parity_fixture.json").write_text(json.dumps(fixture, indent=1) + "\n", encoding="utf-8")

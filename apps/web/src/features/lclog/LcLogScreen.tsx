@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { content, type Difficulty } from '../../content'
 import { DIFFICULTIES } from '../../content/constants'
 import { addLcLog, deleteLcLog, type LcLogRow } from '../../db'
+import { PatternHint } from '../patterns/PatternHint'
 import {
   bestOutcome,
   isSolved,
@@ -206,6 +207,8 @@ export function LcLogScreen({ logs, initialInput = '' }: { logs: LcLogRow[]; ini
           </button>
         </div>
       </form>
+
+      <PatternHint />
 
       <section className="space-y-3">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Recent</h3>

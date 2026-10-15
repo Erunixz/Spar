@@ -15,5 +15,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["vite.config.ts", "content-plugin.ts", "pyodide-plugin.ts", "eslint.config.js"]
+  "include": ["vite.config.ts", "content-plugin.ts", "pyodide-plugin.ts", "model-assets-plugin.ts", "eslint.config.js"]
 }

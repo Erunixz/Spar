@@ -8,8 +8,8 @@
   },
   "max_abs_prob_diff_vs_torch": {
     "onnx_fp32": 1e-06,
-    "onnx_int8": 0.149281,
-    "onnx_int8_mean": 0.009058
+    "onnx_int8": 0.186514,
+    "onnx_int8_mean": 0.009118
   },
   "top1_agreement_int8_vs_torch": 0.9469,
   "val_shipped_blend": {
@@ -24,9 +24,9 @@
       "top1_accuracy": 0.6106
     },
     "onnx_int8": {
-      "macro_f1": 0.503,
-      "micro_f1": 0.5333,
-      "top1_accuracy": 0.6106
+      "macro_f1": 0.5014,
+      "micro_f1": 0.5323,
+      "top1_accuracy": 0.6062
     }
   },
   "tfidf_terms": 21119,

@@ -66,6 +66,21 @@ quantization); the TF-IDF half ships as JSON. Validation, shipped blend:
 it against scikit-learn (< 1e-6), and it is the spec for the browser's TypeScript port.
 `parity_fixture.json` records expected outputs on Spar's own drill prompts for the browser tests.
 
+### In the browser
+
+The app runs the blend in a Web Worker: Transformers.js 4.3 (ONNX Runtime Web, WebAssembly) for the
+student, and a TypeScript port of the TF-IDF scorer (`apps/web/src/features/patterns/`), both checked
+against Python's outputs on the parity fixture. Measured in Edge on the development laptop:
+
+| | |
+|---|---|
+| First answer, including model download from the local server | ~2 s |
+| Inference per problem (median / p90 of 20) | 20 ms / 24 ms |
+| Download: model + tokenizer + TF-IDF + ONNX Runtime | ~22 + 0.7 + 2.9 (0.9 gzipped) + 25.6 MB |
+
+WebGPU is available but not used: the 8-bit dynamically quantized model is a WebAssembly format, and
+at 20 ms per problem there is nothing to gain.
+
 ## Data and licensing
 
 - LeetCodeDataset (`newfacade/LeetCodeDataset`, Apache-2.0 per its card) contains LeetCode problem text. It is used **for training only**: never committed, never shown in the app, never redistributed. A dataset license can't grant rights LeetCode claims, so model cards flag this.
