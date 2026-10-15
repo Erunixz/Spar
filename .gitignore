@@ -19,6 +19,7 @@ __pycache__/
 .venv/
 ml/data/
 ml/checkpoints/
+ml/artifacts/
 *.onnx
 
 # editors and OS

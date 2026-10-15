@@ -25,6 +25,7 @@ Without an NVIDIA GPU, install plain `torch==2.14.1` (CPU); the baseline doesn't
 | Teacher | `.venv/Scripts/python -m src.teacher_oof` (5-fold, ~16 min on an RTX 4060) | `data/v1/teacher_train.npy`, `reports/teacher_oof_v1.json` |
 | Distil | `... src.train_classifier --model sentence-transformers/all-MiniLM-L6-v2 --name minilm-distilled --lr 1e-4 --batch 32 --epochs 30 --distill data/v1/teacher_train.npy --alpha 0.5` | `checkpoints/minilm-distilled/` |
 | Final test | `.venv/Scripts/python -m src.evaluate_final` (run once) | `reports/final_v1.json` |
+| Export | `.venv/Scripts/python -m src.export_onnx` | `artifacts/pattern-classifier-v1/` (git-ignored), `reports/export_v1.json` |
 
 - **Labels:** LeetCode topic tags mapped onto Spar's 14 patterns in `src/patterns.py` (tested against `content/patterns.yaml`). Problems that map to no pattern are dropped.
 - **Split:** by release date, so the test set is the newest problems the model could not have seen: oldest 75% train, next 10% validation, newest 15% test.
@@ -49,6 +50,21 @@ Honest reading: with ~1,700 training problems and noisy tag-derived labels, a fi
 alone does not beat TF-IDF; blending them does. Test differences of 1 to 2 points are within the
 noise of a 340-problem set. Keyword patterns (trees, linked lists, graphs) are easy for every model;
 shape patterns (two pointers, monotonic stack, prefix sum) remain hard.
+
+### Browser export
+
+The student is exported to ONNX and quantized to 8 bits per channel (ONNX Runtime dynamic
+quantization); the TF-IDF half ships as JSON. Validation, shipped blend:
+
+| Student weights | Size | Macro-F1 | Top-1 | Mean prob. change vs PyTorch |
+|---|---|---|---|---|
+| PyTorch / ONNX fp32 | 87 MB | 0.501 | 0.611 | ~0 |
+| 8-bit, per-tensor scales | 22.0 MB | 0.490 | 0.606 | 0.016 |
+| **8-bit, per-channel scales (shipped)** | **22.1 MB** | **0.503** | **0.611** | 0.009 |
+
+`src/tfidf_export.py` holds a pure-Python reference scorer that reads only the JSON; tests check
+it against scikit-learn (< 1e-6), and it is the spec for the browser's TypeScript port.
+`parity_fixture.json` records expected outputs on Spar's own drill prompts for the browser tests.
 
 ## Data and licensing
 
