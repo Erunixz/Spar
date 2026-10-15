@@ -13,10 +13,11 @@ import { SessionSummary } from './features/sessions/SessionSummary'
 import { SkillGraph } from './features/skillmap/SkillGraph'
 import { SurveyScreen } from './features/survey/SurveyScreen'
 
-type Tab = 'practice' | 'log' | 'skills' | 'visualize'
+type Tab = 'practice' | 'log' | 'skills' | 'visualize' | 'lab'
 
 // Code-split: CodeMirror and the Pyodide worker load only when this tab opens.
 const VisualizerScreen = lazy(() => import('./features/visualizer/VisualizerScreen'))
+const LabScreen = lazy(() => import('./features/lab/LabScreen'))
 
 const patternIds = content.patterns.map((p) => p.id)
 
@@ -140,6 +141,7 @@ export default function App() {
                 ['log', 'LeetCode log'],
                 ['skills', 'Skill graph'],
                 ['visualize', 'Visualize'],
+                ['lab', 'Lab'],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -169,6 +171,10 @@ export default function App() {
           />
         ) : tab === 'practice' ? (
           practice
+        ) : tab === 'lab' ? (
+          <Suspense fallback={<p className="text-slate-500">Loading the lab…</p>}>
+            <LabScreen />
+          </Suspense>
         ) : tab === 'visualize' ? (
           <Suspense fallback={<p className="text-slate-500">Loading the visualizer…</p>}>
             <VisualizerScreen />

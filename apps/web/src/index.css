@@ -4,3 +4,22 @@
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: light dark;
 }
+
+/* Chart tokens (validated with the dataviz palette checker against these card surfaces). */
+.viz-root {
+  --viz-surface: #ffffff;
+  --viz-baseline: #86b6ef; /* blue 250: the comparison */
+  --viz-accent: #2a78d6; /* blue 450: the shipped model */
+  --viz-connector: #c3c2b7;
+  --viz-grid: #e1e0d9;
+  --viz-muted: #898781;
+}
+@media (prefers-color-scheme: dark) {
+  .viz-root {
+    --viz-surface: #0f172a;
+    --viz-baseline: #184f95; /* blue 600 */
+    --viz-accent: #3987e5; /* blue 400 */
+    --viz-connector: #383835;
+    --viz-grid: #2c2c2a;
+  }
+}
