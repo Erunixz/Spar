@@ -25,7 +25,16 @@ export interface LcLogEvent {
   /** Tags at log time: from the catalog, or picked by the user for unknown problems. */
   patternIds: string[]
   difficulty: Difficulty
+  /** The catalog rating at log time, if the problem had one (older logs don't). */
+  rating?: number
   ts: number
+}
+
+/** Difficulty on the skill scale: the problem's own rating when known, else its label's bucket. */
+export function lcDifficultyB(p: { difficulty: Difficulty; rating?: number }): number {
+  if (p.rating === undefined) return LC_DIFFICULTY_PRIOR[p.difficulty]
+  const { center, scale } = PARAMS.lc.ratingToB
+  return (p.rating - center) / scale
 }
 
 const RANK: Record<LcOutcome, number> = { viewed: 0, hints: 1, unaided: 2 }

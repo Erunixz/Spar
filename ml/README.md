@@ -81,6 +81,28 @@ against Python's outputs on the parity fixture. Measured in Edge on the developm
 WebGPU is available but not used: the 8-bit dynamically quantized model is a WebAssembly format, and
 at 20 ms per problem there is nothing to gain.
 
+## Model #2: difficulty rating
+
+| Step | Command | Output |
+|---|---|---|
+| Ratings | download `ratings.txt` from [zerotrac/leetcode_problem_rating](https://github.com/zerotrac/leetcode_problem_rating) (MIT) to `data/raw/zerotrac_ratings.txt` | |
+| Train + select | `.venv/Scripts/python -m src.difficulty` (validation only) | `reports/difficulty_v1.json` |
+| Final test | `.venv/Scripts/python -m src.difficulty --score-test` (once) | `reports/difficulty_v1.json` |
+| Rate catalog | `.venv/Scripts/python -m src.difficulty --rate-catalog` | `rating` + `rating_source` in `content/lc_catalog.yaml` |
+
+2,045 problems have both a contest rating and a statement; split by date (1,534 / 204 / 307).
+Because the Easy / Medium / Hard label is always known, the yardstick is **Spearman within a label**.
+
+| Model (test) | Spearman | MAE | Within-label Spearman | Easy / Medium / Hard |
+|---|---|---|---|---|
+| Label mean | 0.886 | 222 | 0.000 | 0 / 0 / 0 |
+| Label + tag means (plan's baseline) | 0.863 | 213 | 0.145 | 0.10 / 0.32 / 0.02 |
+| Ridge: label + tags | 0.878 | 214 | 0.220 | 0.18 / 0.43 / 0.05 |
+| **Ridge: label + tags + text (shipped)** | 0.881 | 218 | **0.258** | 0.28 / 0.45 / 0.05 |
+
+The app maps a rating to the skill scale as b = (rating - 1271) / 500 (`params.ts`), so recommendations and
+mastery updates use each problem's own difficulty instead of an Easy/Medium/Hard bucket.
+
 ## Data and licensing
 
 - LeetCodeDataset (`newfacade/LeetCodeDataset`, Apache-2.0 per its card) contains LeetCode problem text. It is used **for training only**: never committed, never shown in the app, never redistributed. A dataset license can't grant rights LeetCode claims, so model cards flag this.

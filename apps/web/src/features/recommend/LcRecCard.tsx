@@ -41,7 +41,15 @@ export function LcRecCard({ rec, action }: { rec: LcRecommendation; action?: Rea
         </span>
       </div>
       <p className="text-xs text-slate-500 dark:text-slate-400">
-        <span className="capitalize">{problem.difficulty}</span> · ~{rec.minutes} min ·{' '}
+        <span className="capitalize">{problem.difficulty}</span>
+        {problem.rating && (
+          <span title={problem.rating_source === 'contest' ? 'Contest rating (zerotrac)' : 'Estimated difficulty rating'}>
+            {' '}
+            · rating {problem.rating_source === 'contest' ? '' : '~'}
+            {problem.rating}
+          </span>
+        )}{' '}
+        · ~{rec.minutes} min ·{' '}
         {problem.pattern_ids.map(patternName).join(', ')}
       </p>
       <p className="text-sm">{recReason(rec)}</p>

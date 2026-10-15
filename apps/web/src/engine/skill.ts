@@ -8,7 +8,7 @@ import {
   update,
   type Rating,
 } from './elo'
-import { bestOutcome, isSolved, LC_DIFFICULTY_PRIOR, LC_OUTCOME_SCORE, type LcLogEvent, type LcOutcome } from './lc'
+import { bestOutcome, isSolved, lcDifficultyB, LC_OUTCOME_SCORE, type LcLogEvent, type LcOutcome } from './lc'
 
 export interface ResponseEvent {
   itemId: string
@@ -94,7 +94,7 @@ export function computeSkills(
       for (const pid of log.patternIds) {
         const rating = ratings.get(pid)
         if (!rating) continue
-        ratings.set(pid, update(rating, LC_DIFFICULTY_PRIOR[log.difficulty], LC_OUTCOME_SCORE[log.outcome]).rating)
+        ratings.set(pid, update(rating, lcDifficultyB(log), LC_OUTCOME_SCORE[log.outcome]).rating)
         lastTs.set(pid, log.ts)
         const best = lcBest.get(pid)!
         const prev = best.get(log.slug)

@@ -1,6 +1,6 @@
 import type { Difficulty, LcProblem, Pattern } from '../content/schema'
 import { pCorrect } from './elo'
-import { bestOutcome, LC_DIFFICULTY_PRIOR, type LcLogEvent, type LcOutcome } from './lc'
+import { bestOutcome, lcDifficultyB, type LcLogEvent, type LcOutcome } from './lc'
 import { PARAMS } from './params'
 import type { PatternSkill, SkillState } from './skill'
 import type { ComfortRating } from './survey'
@@ -187,7 +187,7 @@ export function recommendLeetCodeDetailed(
   for (const problem of catalog) {
     const minutes = LC_MINUTES[problem.difficulty]
     if (minutes > maxMinutes) continue
-    const scored = scoreCandidate(problem.pattern_ids, LC_DIFFICULTY_PRIOR[problem.difficulty], ctx)
+    const scored = scoreCandidate(problem.pattern_ids, lcDifficultyB(problem), ctx)
     if (!scored) continue
 
     const h = history.get(problem.slug)

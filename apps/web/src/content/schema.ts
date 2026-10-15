@@ -34,6 +34,10 @@ export const lcProblemSchema = z.strictObject({
   number: z.number().int().positive(),
   difficulty: z.enum(DIFFICULTIES),
   pattern_ids: z.array(slug).min(1),
+  /** Difficulty rating on zerotrac's contest scale (written by ml/src/difficulty.py). */
+  rating: z.number().int().min(800).max(3600).optional(),
+  /** contest = zerotrac's rating, model = Model #2's estimate, label = average for the difficulty label. */
+  rating_source: z.enum(['contest', 'model', 'label']).optional(),
 })
 
 export type Pattern = z.infer<typeof patternSchema>

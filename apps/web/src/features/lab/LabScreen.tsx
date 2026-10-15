@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import dataReport from '../../../../../ml/reports/data_v1.json'
+import difficultyReport from '../../../../../ml/reports/difficulty_v1.json'
 import exportReport from '../../../../../ml/reports/export_v1.json'
 import final from '../../../../../ml/reports/final_v1.json'
 import ablationOff from '../../../../../ml/reports/finetune_minilm-30ep_v1.json'
@@ -80,6 +81,72 @@ function Benchmark() {
         {state.text}
       </span>
     </div>
+  )
+}
+
+const DIFF_MODELS: { key: keyof typeof difficultyReport.test; label: string; note?: string }[] = [
+  { key: 'label_mean', label: 'Average for the difficulty label' },
+  { key: 'tag_mean', label: 'Label + LeetCode tag averages' },
+  { key: 'tag_ridge', label: 'Ridge: label + tags' },
+  { key: 'tag_text_ridge', label: 'Ridge: label + tags + statement text', note: 'shipped' },
+]
+
+function ModelTwo() {
+  const t = difficultyReport.test
+  const split = difficultyReport.split
+  return (
+    <section className="space-y-6">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold">Model #2: difficulty rating</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Estimates a problem&apos;s contest-style difficulty rating, so the recommender can tell an easy Medium from a
+          brutal one. Most classic problems predate rated contests: of the {78} catalog problems, 6 have a real
+          contest rating and the rest are estimated offline. Only the numbers ship; no problem text.
+        </p>
+      </div>
+      <Section title={`Test results: ${split.test.rows} newest rated problems (${split.test.date_from} to ${split.test.date_to})`}>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-left text-xs text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+              <tr>
+                <th className="px-3 py-2 font-medium">Model</th>
+                <th className="px-3 py-2 text-right font-medium">Spearman</th>
+                <th className="px-3 py-2 text-right font-medium">MAE (rating points)</th>
+                <th className="px-3 py-2 text-right font-medium">Within-label Spearman</th>
+                <th className="px-3 py-2 text-right font-medium">Easy / Medium / Hard</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {DIFF_MODELS.map(({ key, label, note }) => {
+                const m = t[key]
+                const w = m.spearman_within_label as Record<string, number>
+                return (
+                  <tr key={key} className={`border-t border-slate-100 dark:border-slate-800 ${note ? 'bg-indigo-50/60 font-medium dark:bg-indigo-950/40' : ''}`}>
+                    <td className="px-3 py-2">
+                      {label}
+                      {note && <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-normal text-slate-600 dark:bg-slate-800 dark:text-slate-300">{note}</span>}
+                    </td>
+                    <td className="px-3 py-2 text-right">{m.spearman.toFixed(3)}</td>
+                    <td className="px-3 py-2 text-right">{m.mae.toFixed(0)}</td>
+                    <td className="px-3 py-2 text-right">{m.spearman_within_label_mean.toFixed(3)}</td>
+                    <td className="px-3 py-2 text-right">
+                      {['easy', 'medium', 'hard'].map((l) => (w[l] ?? 0).toFixed(2)).join(' / ')}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          The Easy / Medium / Hard label already sorts problems, so overall Spearman barely moves. What the model adds
+          is ranking <em>within</em> a label, where the label alone scores zero: useful for Mediums (0.45), weak for
+          Easies, and absent for Hards, which differ in ways the statement and tags don&apos;t reveal. Labels are
+          zerotrac&apos;s contest ratings (MIT), trained on {split.train.rows} problems and chosen on {split.val.rows}{' '}
+          validation problems before this test was scored once.
+        </p>
+      </Section>
+    </section>
   )
 }
 
@@ -278,11 +345,13 @@ export default function LabScreen() {
         </Section>
       </section>
 
+      <ModelTwo />
+
       <section className="space-y-2 rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
         <h2 className="font-semibold text-slate-800 dark:text-slate-100">Coming next</h2>
         <p>
-          Model #2 (difficulty from problem text, to seed the adaptive placement test), the placement test&apos;s
-          simulation study (how many questions it needs versus a fixed test), and Model #3 (time complexity from code).
+          The adaptive placement test&apos;s simulation study (how many questions it needs versus a fixed test), and
+          Model #3 (time complexity from code).
         </p>
       </section>
     </div>

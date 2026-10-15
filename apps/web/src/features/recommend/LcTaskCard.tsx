@@ -28,6 +28,7 @@ export function LcTaskCard({ rec, shownAt, sessionId, onDone }: Props) {
         outcome,
         patternIds: rec.problem.pattern_ids,
         difficulty: rec.problem.difficulty,
+        ...(rec.problem.rating ? { rating: rec.problem.rating } : {}),
         minutes,
         sessionId,
       })

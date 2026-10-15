@@ -99,3 +99,19 @@ describe('LeetCode logs in the skill model', () => {
     expect(s.patterns.get('a')!.lcLogged).toBe(0)
   })
 })
+
+describe('lcDifficultyB', () => {
+  it('uses the label bucket without a rating, and the rating when known', async () => {
+    const { lcDifficultyB } = await import('./lc')
+    expect(lcDifficultyB({ difficulty: 'medium' })).toBe(1)
+    expect(lcDifficultyB({ difficulty: 'easy', rating: 1271 })).toBeCloseTo(0)
+    expect(lcDifficultyB({ difficulty: 'hard', rating: 2271 })).toBeCloseTo(2)
+    expect(lcDifficultyB({ difficulty: 'medium', rating: 1780 })).toBeGreaterThan(lcDifficultyB({ difficulty: 'medium', rating: 1300 }))
+  })
+
+  it('lets a harder Medium move mastery more than an easier one', () => {
+    const solve = (rating: number) =>
+      computeSkills(['a'], new Map(), [], [{ slug: 'x', outcome: 'unaided', ts: 1, difficulty: 'medium', patternIds: ['a'], rating }]).patterns.get('a')!.mastery
+    expect(solve(1900)).toBeGreaterThan(solve(1300))
+  })
+})

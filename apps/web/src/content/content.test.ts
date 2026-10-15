@@ -48,6 +48,20 @@ describe('repo content', () => {
     expect(thin).toEqual([])
   })
 
+  it('rates every LeetCode catalog entry and says where the rating came from', () => {
+    const { patterns, items, catalog } = loadRepoContent()
+    const content = validateContent(patterns, items, catalog)
+    const missing = content.lcCatalog.filter((p) => p.rating === undefined || p.rating_source === undefined).map((p) => p.slug)
+    expect(missing).toEqual([])
+    // Ratings respect the label order on average.
+    const mean = (d: string) => {
+      const r = content.lcCatalog.filter((p) => p.difficulty === d).map((p) => p.rating!)
+      return r.reduce((a, b) => a + b, 0) / r.length
+    }
+    expect(mean('easy')).toBeLessThan(mean('medium'))
+    expect(mean('medium')).toBeLessThan(mean('hard'))
+  })
+
   it('has no duplicate prompts and mixes difficulties', () => {
     const { patterns, items, catalog } = loadRepoContent()
     const content = validateContent(patterns, items, catalog)

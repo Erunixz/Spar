@@ -7,7 +7,7 @@
  * produced them.
  */
 export const PARAMS = {
-  version: 'v3-handset-2026-10-11',
+  version: 'v4-handset-2026-10-15',
 
   elo: {
     /** Prior standard deviation of ability before any evidence. */
@@ -29,6 +29,12 @@ export const PARAMS = {
     difficultyPrior: { easy: 0, medium: 1, hard: 2 },
     /** Rough minutes to budget per problem. */
     minutes: { easy: 15, medium: 25, hard: 40 },
+    /**
+     * Per-problem rating (contest or Model #2) -> b on the skill scale:
+     * b = (rating - center) / scale. Chosen so the average Easy (1271) and Hard
+     * (2273) land where the old buckets put them (0 and 2); Medium averages 0.8.
+     */
+    ratingToB: { center: 1271, scale: 500 },
   },
 
   rec: {

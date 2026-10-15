@@ -50,7 +50,8 @@ export function LcLogScreen({ logs, initialInput = '' }: { logs: LcLogRow[]; ini
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!canLog) return
-    await addLcLog({ slug, outcome, patternIds, difficulty, minutes: minutesValue })
+    const rating = parsed.kind === 'catalog' ? parsed.problem.rating : undefined
+    await addLcLog({ slug, outcome, patternIds, difficulty, minutes: minutesValue, ...(rating ? { rating } : {}) })
     setJustLogged(slugTitle(slug))
     setInput('')
     setOutcome(null)
