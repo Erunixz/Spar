@@ -7,7 +7,7 @@
  * produced them.
  */
 export const PARAMS = {
-  version: 'v4-handset-2026-10-15',
+  version: 'v5-handset-2026-10-16',
 
   elo: {
     /** Prior standard deviation of ability before any evidence. */
@@ -72,6 +72,22 @@ export const PARAMS = {
     gapMastery: 25,
     /** ...once it has at least this many drill answers and LeetCode logs. */
     gapMinEvidence: 5,
+  },
+
+  placement: {
+    /** EAP quadrature grid on the theta scale. */
+    grid: { min: -4, max: 4, points: 61 },
+    /** Prior for general ability across all patterns. */
+    generalPriorSd: 1,
+    /** How far one pattern's ability is expected to sit from your general ability (the shared prior). */
+    patternSd: 0.8,
+    /** Next pattern = highest SE, tilted toward patterns below your general level by this much per logit. */
+    weakTilt: 0.25,
+    /** Stop when every pattern's SE is at or below this... */
+    seStop: 0.6,
+    /** ...or after this many items, but never before minItems. */
+    maxItems: 20,
+    minItems: 8,
   },
 
   session: {
