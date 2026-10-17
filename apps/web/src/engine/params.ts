@@ -7,7 +7,7 @@
  * produced them.
  */
 export const PARAMS = {
-  version: 'v5-handset-2026-10-16',
+  version: 'v6-cat-sim-2026-10-16',
 
   elo: {
     /** Prior standard deviation of ability before any evidence. */
@@ -81,9 +81,12 @@ export const PARAMS = {
     generalPriorSd: 1,
     /** How far one pattern's ability is expected to sit from your general ability (the shared prior). */
     patternSd: 0.8,
-    /** Next pattern = highest SE, tilted toward patterns below your general level by this much per logit. */
-    weakTilt: 0.25,
-    /** Stop when every pattern's SE is at or below this... */
+    /**
+     * Next pattern = highest SE, tilted toward patterns below your general level by this much per logit.
+     * 0 since the simulation study (ml/reports/cat_sim_v1.json): any tilt lowered weak-area recall and raised RMSE.
+     */
+    weakTilt: 0,
+    /** Stop when every pattern's SE is at or below this (unreachable within 20 items on the current bank; kept for a richer one)... */
     seStop: 0.6,
     /** ...or after this many items, but never before minItems. */
     maxItems: 20,

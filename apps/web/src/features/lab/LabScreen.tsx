@@ -5,10 +5,12 @@ import exportReport from '../../../../../ml/reports/export_v1.json'
 import final from '../../../../../ml/reports/final_v1.json'
 import ablationOff from '../../../../../ml/reports/finetune_minilm-30ep_v1.json'
 import ablationOn from '../../../../../ml/reports/finetune_minilm-distilled_v1.json'
+import catSim from '../../../../../ml/reports/cat_sim_v1.json'
 import { content } from '../../content'
 import { patternClient } from '../patterns/patternClient'
 import { PatternHint } from '../patterns/PatternHint'
 import { DumbbellChart } from './DumbbellChart'
+import { LineChart } from './LineChart'
 
 /**
  * /lab: the models behind Spar, with numbers read straight from ml/reports
@@ -144,6 +146,57 @@ function ModelTwo() {
           Easies, and absent for Hards, which differ in ways the statement and tags don&apos;t reveal. Labels are
           zerotrac&apos;s contest ratings (MIT), trained on {split.train.rows} problems and chosen on {split.val.rows}{' '}
           validation problems before this test was scored once.
+        </p>
+      </Section>
+    </section>
+  )
+}
+
+const pct = (v: number) => `${Math.round(v * 100)}%`
+
+function CatStudy() {
+  const h = catSim.horizon
+  const head = catSim.headline
+  const match = h.adaptive_items_to_match_fixed
+  return (
+    <section className="space-y-6">
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold">Adaptive placement test: simulation study</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          {catSim.n_takers.toLocaleString()} simulated test-takers with known true ability in each of the 14 patterns
+          answer the real 120-question bank. The same estimator scores three ways of picking questions: Spar&apos;s
+          adaptive rule, one fixed form balanced across patterns, and random questions. The measure: of your true
+          three weakest patterns, how many the test&apos;s three lowest estimates catch.
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="Adaptive, 20 questions" value={pct(head.adaptive_weak3_at_20)} sub="of weak-3 caught" />
+        <Stat label="Fixed form, 20" value={pct(head.fixed_form_weak3_at_20)} sub="a tie at this length" />
+        <Stat label="Chance" value={pct(head.chance_weak3)} sub="3 of 14 at random" />
+        <Stat label="Questions saved" value={`${30 - (match['30'] ?? 30)} of 30`} sub={`adaptive matches fixed-30 in ${match['30']}`} />
+      </div>
+      <Section title={`Weak-3 caught vs test length (${h.n_takers.toLocaleString()} takers, up to ${h.length} questions)`}>
+        <LineChart
+          series={[
+            { name: 'Adaptive', values: h.weak3.adaptive, color: 'var(--viz-series-1)' },
+            { name: 'Fixed form', values: h.weak3.fixed, color: 'var(--viz-series-2)' },
+            { name: 'Random', values: h.weak3.random, color: 'var(--viz-series-3)' },
+          ]}
+          xLabel="Questions answered"
+          yLabel="Share of true weakest 3 patterns caught"
+          format={pct}
+          yMax={0.6}
+          reference={{ value: head.chance_weak3, label: 'Chance' }}
+        />
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          The honest result: at the shipped 20 questions, adaptivity buys nothing measurable. With 14 patterns that is
+          about 1.4 right-or-wrong answers each, and the bank&apos;s questions come in only three difficulties, so there
+          is little for the adaptive rule to exploit. It pulls ahead on longer tests (it matches the fixed form&apos;s
+          30-question result in {match['30']} and its {h.length}-question result in {match[String(h.length) as '60']}),
+          and it has the lowest error throughout (RMSE {head.rmse_at_20.adaptive.toFixed(3)} vs{' '}
+          {head.rmse_at_20.fixed.toFixed(3)} fixed at 20). The study also retired a design choice: tilting toward
+          patterns that look weak lowered recall at every setting tried, so the tilt is now 0. The placement test is a
+          starting prior; your drills sharpen it from there.
         </p>
       </Section>
     </section>
@@ -347,11 +400,12 @@ export default function LabScreen() {
 
       <ModelTwo />
 
+      <CatStudy />
+
       <section className="space-y-2 rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
         <h2 className="font-semibold text-slate-800 dark:text-slate-100">Coming next</h2>
         <p>
-          The adaptive placement test&apos;s simulation study (how many questions it needs versus a fixed test), and
-          Model #3 (time complexity from code).
+          The placement test itself (built on the engine studied above), and Model #3 (time complexity from code).
         </p>
       </section>
     </div>

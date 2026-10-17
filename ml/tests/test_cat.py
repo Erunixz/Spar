@@ -58,3 +58,36 @@ def test_runs_a_full_placement_on_the_real_bank():
         responses.append((item.id, rng.random() < cat.icc(0.3, item.a, item.b)))
     assert 8 <= len(responses) <= 20
     assert len({i for i, _ in responses}) == len(responses)  # never repeats an item
+
+
+def test_fast_simulator_matches_the_reference_engine():
+    np = pytest.importorskip("numpy")
+    from src.cat_sim import FastCat
+
+    items, patterns = cat.load_bank()
+    fast = FastCat(items, patterns, cat.PLACEMENT)
+    rng = random.Random(5)
+    responses: list[tuple[str, bool]] = []
+    asked: list[int] = []
+    index = {it.id: k for k, it in enumerate(items)}
+    for _ in range(15):
+        ref_general, ref_per = cat.estimate_all({i.id: i for i in items}, patterns, responses)
+        general, per = fast.estimate(asked, [c for _, c in responses])
+        assert abs(general[0] - ref_general[0]) < 1e-9 and abs(general[1] - ref_general[1]) < 1e-9
+        for k, p in enumerate(patterns):
+            assert np.allclose(per[k], ref_per[p], atol=1e-9)
+        ref_item, _ = cat.next_item(items, patterns, responses, estimates=(ref_general, ref_per))
+        assert items[fast.next_adaptive(asked, general, per)].id == ref_item.id
+        correct = rng.random() < 0.55
+        responses.append((ref_item.id, correct))
+        asked.append(index[ref_item.id])
+
+
+def test_fixed_form_covers_every_pattern_before_repeating():
+    from src.cat_sim import fixed_form
+
+    items, patterns = cat.load_bank()
+    form = fixed_form(items, patterns, 20)
+    assert len(form) == len(set(form)) == 20
+    first_round = {items[i].patterns[0] for i in form[: len(patterns)]}
+    assert first_round == set(patterns)

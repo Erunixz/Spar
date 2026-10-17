@@ -22,7 +22,7 @@ PLACEMENT = {
     "grid": {"min": -4, "max": 4, "points": 61},
     "generalPriorSd": 1,
     "patternSd": 0.8,
-    "weakTilt": 0.25,
+    "weakTilt": 0,  # chosen by src/cat_sim.py
     "seStop": 0.6,
     "maxItems": 20,
     "minItems": 8,

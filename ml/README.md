@@ -103,6 +103,31 @@ Because the Easy / Medium / Hard label is always known, the yardstick is **Spear
 The app maps a rating to the skill scale as b = (rating - 1271) / 500 (`params.ts`), so recommendations and
 mastery updates use each problem's own difficulty instead of an Easy/Medium/Hard bucket.
 
+## Adaptive placement test (CAT)
+
+`src/cat.py` mirrors the app's engine (`apps/web/src/engine/cat.ts`); `src.make_cat_fixture` writes the parity
+fixture the TypeScript tests replay, and `tests/test_cat.py` checks the mirror against `catsim` and `params.ts`.
+
+| Step | Command | Output |
+|---|---|---|
+| Simulation study | `.venv/Scripts/python -W ignore -m src.cat_sim --n 2000` (~5 min) | `reports/cat_sim_v1.json` |
+| Parity fixture | `.venv/Scripts/python -m src.make_cat_fixture` (after any placement setting changes) | `apps/web/src/engine/__fixtures__/cat-parity.json` |
+
+Simulated takers (general ~ N(0, 1), each pattern = general + N(0, 0.8²)) answer the real 120-item bank. The
+weak-pattern tilt is tuned on one seed and evaluated on fresh ones. Metric: share of the true 3 weakest patterns
+among the 3 lowest estimates (chance 21%).
+
+| Questions | Adaptive | Fixed form | Random |
+|---|---|---|---|
+| 20 (shipped) | 35.2% | 35.2% | 36.3% |
+| 30 | 41.6% | 38.3% | 39.3% |
+| 60 | 48.4% | 46.2% | 46.0% |
+
+At 20 questions the three are tied (±0.5% SEM); adaptive leads on RMSE (0.815 vs 0.825 fixed) and rank
+correlation. Longer, it pulls ahead: it matches the fixed form's 30-question result in 24 questions and its
+60-question result in 53. The limit is the bank (about 1.4 binary answers per pattern at 20, three difficulty
+levels). Every tilt > 0 lowered recall, so `weakTilt` is now 0; the SE stop (0.6) is never reached at 20.
+
 ## Data and licensing
 
 - LeetCodeDataset (`newfacade/LeetCodeDataset`, Apache-2.0 per its card) contains LeetCode problem text. It is used **for training only**: never committed, never shown in the app, never redistributed. A dataset license can't grant rights LeetCode claims, so model cards flag this.
