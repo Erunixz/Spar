@@ -26,6 +26,7 @@ PLACEMENT = {
     "seStop": 0.6,
     "maxItems": 20,
     "minItems": 8,
+    "timeLimitMinutes": 10,  # enforced by the app's screen, not simulated here
 }
 DIFFICULTY_PRIOR = {"easy": -1, "medium": 0, "hard": 1}
 
@@ -70,7 +71,8 @@ def eap(answers: list[tuple[float, float, bool]], mean: float, sd: float, nodes:
     return theta, math.sqrt(var)
 
 
-def estimate_all(bank: dict[str, Item], patterns: list[str], responses: list[tuple[str, bool]], cfg: dict = PLACEMENT):
+def estimate_all(bank: dict[str, Item], patterns: list[str], responses: list[tuple[str, bool]], cfg: dict = PLACEMENT, priors: dict[str, float] | None = None):
+    """priors: prior mean per pattern (comfort survey); unrated patterns use the general estimate."""
     g = cfg["grid"]
     nodes = grid(g["min"], g["max"], g["points"])
     answered = [(bank[i], c) for i, c in responses if i in bank]
@@ -78,7 +80,7 @@ def estimate_all(bank: dict[str, Item], patterns: list[str], responses: list[tup
     per = {}
     for p in patterns:
         mine = [(it.a, it.b, c) for it, c in answered if p in it.patterns]
-        per[p] = eap(mine, general[0], cfg["patternSd"], nodes)
+        per[p] = eap(mine, (priors or {}).get(p, general[0]), cfg["patternSd"], nodes)
     return general, per
 
 

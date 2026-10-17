@@ -1,4 +1,6 @@
 import Dexie, { type EntityTable, type Transaction } from 'dexie'
+import type { StopReason } from '../engine/cat'
+import type { Estimate } from '../engine/irt'
 import type { LcLogEvent, LcOutcome } from '../engine/lc'
 import { PARAMS } from '../engine/params'
 import type { CandidateScore, RecFeatures } from '../engine/recommend'
@@ -88,11 +90,37 @@ export interface SelfRatingRow extends SelfRatingEvent {
   paramsVersion: string
 }
 
+/** One answer inside a placement test. Kept out of `responses` so it isn't counted twice (see skillPriors). */
+export interface PlacementAnswer {
+  itemId: string
+  choice: string
+  correct: boolean
+  latencyMs: number
+  ts: number
+  /** The pattern the test was probing when it chose this item. */
+  pattern: string
+}
+
+/** One finished placement test. Abandoned tests aren't saved. */
+export interface PlacementRow {
+  id: string
+  startedAt: number
+  endedAt: number
+  stop: StopReason | 'time'
+  answers: PlacementAnswer[]
+  general: Estimate
+  patterns: Record<string, Estimate>
+  /** Survey thetas the test started from. */
+  priors: Record<string, number>
+  paramsVersion: string
+}
+
 export type SurveyStatus = { status: 'done' | 'skipped'; ts: number }
 
 /** Small key-value store for app state that should sync with the account later. */
 export interface SettingRow {
-  key: 'survey'
+  /** 'placement' only ever records a dismissed prompt; finished tests live in `placements`. */
+  key: 'survey' | 'placement'
   value: SurveyStatus
 }
 
@@ -105,6 +133,7 @@ export const db = new Dexie(DB_NAME) as Dexie & {
   recommendations: EntityTable<RecommendationRow, 'id'>
   selfRatings: EntityTable<SelfRatingRow, 'id'>
   settings: EntityTable<SettingRow, 'key'>
+  placements: EntityTable<PlacementRow, 'id'>
 }
 
 db.version(1).stores({
@@ -178,6 +207,8 @@ db.version(9).stores({
   settings: 'key',
 })
 
+db.version(10).stores({ placements: 'id, endedAt' })
+
 export function recordResponse(row: Omit<ResponseRow, 'id'>) {
   return db.responses.add({ ...row, id: newId() })
 }
@@ -247,7 +278,24 @@ export function skipSurvey() {
   return db.settings.put({ key: 'survey', value: { status: 'skipped', ts: Date.now() } })
 }
 
-const ALL_TABLES = () => [db.responses, db.sessions, db.lcLogs, db.recommendations, db.selfRatings, db.settings]
+/** Hides the "take the placement test" prompt; the test stays available from the skill graph. */
+export function dismissPlacementPrompt() {
+  return db.settings.put({ key: 'placement', value: { status: 'skipped', ts: Date.now() } })
+}
+
+export function savePlacement(row: Omit<PlacementRow, 'id' | 'paramsVersion'>) {
+  return db.placements.add({ ...row, id: newId(), paramsVersion: PARAMS.version })
+}
+
+const ALL_TABLES = () => [
+  db.responses,
+  db.sessions,
+  db.lcLogs,
+  db.recommendations,
+  db.selfRatings,
+  db.settings,
+  db.placements,
+]
 
 /** Deletes everything stored on this device. */
 export function clearAllProgress() {
@@ -256,18 +304,19 @@ export function clearAllProgress() {
   })
 }
 
-/** v3: adds selfRatings and settings. */
-export const EXPORT_FORMAT = 'spar-export/3'
+/** v3: adds selfRatings and settings. v4: adds placements. */
+export const EXPORT_FORMAT = 'spar-export/4'
 
 /** Everything on this device as one JSON-ready object, for backups and Phase 9 scripts. */
 export async function exportAllData() {
-  const [responses, sessions, lcLogs, recommendations, selfRatings, settings] = await Promise.all([
+  const [responses, sessions, lcLogs, recommendations, selfRatings, settings, placements] = await Promise.all([
     db.responses.toArray(),
     db.sessions.toArray(),
     db.lcLogs.toArray(),
     db.recommendations.toArray(),
     db.selfRatings.toArray(),
     db.settings.toArray(),
+    db.placements.toArray(),
   ])
   return {
     format: EXPORT_FORMAT,
@@ -279,5 +328,6 @@ export async function exportAllData() {
     recommendations,
     selfRatings,
     settings,
+    placements,
   }
 }

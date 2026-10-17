@@ -1,14 +1,16 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { content } from './content'
-import { clearAllProgress, db, endSession, skipSurvey, startSession, type SessionRow } from './db'
+import { clearAllProgress, db, dismissPlacementPrompt, endSession, skipSurvey, startSession, type SessionRow } from './db'
 import { bestOutcome, isSolved, type LcOutcome } from './engine/lc'
 import type { SessionLength } from './engine/session'
 import { computeSkills } from './engine/skill'
+import { skillPriors } from './engine/placement'
 import { latestRatings, priorsFromRatings } from './engine/survey'
 import { DrillScreen } from './features/drills/DrillScreen'
 import { LcLogScreen } from './features/lclog/LcLogScreen'
 import { SessionSetup } from './features/sessions/SessionSetup'
+import { PlacementScreen } from './features/placement/PlacementScreen'
 import { SessionSummary } from './features/sessions/SessionSummary'
 import { SkillGraph } from './features/skillmap/SkillGraph'
 import { SurveyScreen } from './features/survey/SurveyScreen'
@@ -34,8 +36,18 @@ export default function App() {
   const ratingRows = useLiveQuery(() => db.selfRatings.toArray(), [])
   // null = never answered or skipped; undefined = still loading.
   const surveyStatus = useLiveQuery(async () => (await db.settings.get('survey'))?.value ?? null, [])
-  const loaded = responses !== undefined && lcLogs !== undefined && ratingRows !== undefined && surveyStatus !== undefined
+  // null = no finished placement test.
+  const placement = useLiveQuery(async () => (await db.placements.orderBy('endedAt').last()) ?? null, [])
+  const placementPromptDismissed = useLiveQuery(async () => (await db.settings.get('placement')) !== undefined, [])
+  const loaded =
+    responses !== undefined &&
+    lcLogs !== undefined &&
+    ratingRows !== undefined &&
+    surveyStatus !== undefined &&
+    placement !== undefined &&
+    placementPromptDismissed !== undefined
   const [retakeSurvey, setRetakeSurvey] = useState(false)
+  const [placementOpen, setPlacementOpen] = useState(false)
 
   // A session left open by a closed tab or reload can't be resumed; close it.
   useEffect(() => {
@@ -43,7 +55,9 @@ export default function App() {
   }, [])
 
   const selfRatings = useMemo(() => latestRatings(ratingRows ?? []), [ratingRows])
-  const priors = useMemo(() => priorsFromRatings(selfRatings), [selfRatings])
+  const surveyPriors = useMemo(() => priorsFromRatings(selfRatings), [selfRatings])
+  // Skills start from the latest placement, or the survey where there is none (or it's newer).
+  const priors = useMemo(() => skillPriors(placement ?? null, ratingRows ?? []), [placement, ratingRows])
   const skills = useMemo(
     () => computeSkills(patternIds, content.itemsById, responses ?? [], lcLogs ?? [], priors),
     [responses, lcLogs, priors],
@@ -74,7 +88,7 @@ export default function App() {
   }, [active])
 
   async function resetProgress() {
-    if (window.confirm('Delete every saved answer, LeetCode log and survey rating on this device? This cannot be undone.')) {
+    if (window.confirm('Delete every saved answer, LeetCode log, survey rating and placement result on this device? This cannot be undone.')) {
       await clearAllProgress()
       setFinished(null)
     }
@@ -119,6 +133,9 @@ export default function App() {
         showSurveyBanner={surveyStatus === null}
         onTakeSurvey={() => setRetakeSurvey(true)}
         onDismissSurvey={() => void skipSurvey()}
+        showPlacementBanner={placement === null && !placementPromptDismissed}
+        onTakePlacement={() => setPlacementOpen(true)}
+        onDismissPlacement={() => void dismissPlacementPrompt()}
         onStart={begin}
         onLogProblem={(slug) => {
           setLogPrefill({ slug, key: Date.now() })
@@ -169,6 +186,14 @@ export default function App() {
             mode={firstRun ? 'first' : 'retake'}
             onClose={() => setRetakeSurvey(false)}
           />
+        ) : loaded && placementOpen ? (
+          <PlacementScreen
+            surveyPriors={surveyPriors}
+            onClose={() => {
+              setPlacementOpen(false)
+              setTab('practice')
+            }}
+          />
         ) : tab === 'practice' ? (
           practice
         ) : tab === 'lab' ? (
@@ -189,6 +214,8 @@ export default function App() {
             selfRatings={selfRatings}
             lcSolvedTotal={lcSolvedTotal}
             onRetakeSurvey={() => setRetakeSurvey(true)}
+            hasPlacement={placement !== null}
+            onPlacement={() => setPlacementOpen(true)}
             onReset={resetProgress}
           />
         )}

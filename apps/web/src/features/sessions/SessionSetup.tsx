@@ -18,6 +18,10 @@ interface Props {
   showSurveyBanner: boolean
   onTakeSurvey: () => void
   onDismissSurvey: () => void
+  /** No finished placement and the prompt wasn't dismissed. */
+  showPlacementBanner: boolean
+  onTakePlacement: () => void
+  onDismissPlacement: () => void
   onStart: (minutes: SessionLength, timed: boolean) => void
   onLogProblem: (slug: string) => void
 }
@@ -30,6 +34,9 @@ export function SessionSetup({
   showSurveyBanner,
   onTakeSurvey,
   onDismissSurvey,
+  showPlacementBanner,
+  onTakePlacement,
+  onDismissPlacement,
   onStart,
   onLogProblem,
 }: Props) {
@@ -69,6 +76,32 @@ export function SessionSetup({
             <button
               type="button"
               onClick={onDismissSurvey}
+              className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-indigo-100 dark:text-slate-400 dark:hover:bg-indigo-900"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!showSurveyBanner && showPlacementBanner && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-900 dark:bg-indigo-950/50">
+          <p className="text-sm">
+            <span className="font-semibold">Find your weak spots:</span> a placement test of up to{' '}
+            {PARAMS.placement.maxItems} questions ({PARAMS.placement.timeLimitMinutes} minutes at most) sets your
+            starting skill levels.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onTakePlacement}
+              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700"
+            >
+              Take the test
+            </button>
+            <button
+              type="button"
+              onClick={onDismissPlacement}
               className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-indigo-100 dark:text-slate-400 dark:hover:bg-indigo-900"
             >
               Not now

@@ -91,6 +91,8 @@ export const PARAMS = {
     /** ...or after this many items, but never before minItems. */
     maxItems: 20,
     minItems: 8,
+    /** The screen ends the test after this long, whatever the item count (the plan's 10-minute target). */
+    timeLimitMinutes: 10,
   },
 
   session: {

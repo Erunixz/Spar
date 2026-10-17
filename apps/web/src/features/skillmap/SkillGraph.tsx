@@ -102,12 +102,14 @@ interface Props {
   skills: SkillState
   selfRatings: Map<string, ComfortRating>
   onRetakeSurvey: () => void
+  hasPlacement: boolean
+  onPlacement: () => void
   /** Distinct LeetCode problems solved; summed per pattern would double-count multi-tag problems. */
   lcSolvedTotal: number
   onReset: () => void
 }
 
-export function SkillGraph({ skills, selfRatings, lcSolvedTotal, onRetakeSurvey, onReset }: Props) {
+export function SkillGraph({ skills, selfRatings, lcSolvedTotal, onRetakeSurvey, hasPlacement, onPlacement, onReset }: Props) {
   const [shareData, setShareData] = useState<CardData | null>(null)
   const all = [...skills.patterns.values()]
   const attempts = all.reduce((n, s) => n + s.attempts, 0)
@@ -162,6 +164,13 @@ export function SkillGraph({ skills, selfRatings, lcSolvedTotal, onRetakeSurvey,
           className="text-slate-500 underline hover:text-slate-900 dark:hover:text-slate-100"
         >
           {selfRatings.size > 0 ? 'Retake comfort survey' : 'Take comfort survey'}
+        </button>
+        <button
+          type="button"
+          onClick={onPlacement}
+          className="text-slate-500 underline hover:text-slate-900 dark:hover:text-slate-100"
+        >
+          {hasPlacement ? 'Retake placement test' : 'Take placement test'}
         </button>
         {(attempts > 0 || all.some((s) => s.lcLogged > 0) || selfRatings.size > 0) && (
           <>

@@ -12,6 +12,9 @@ import { PARAMS } from './params'
  *   look weaker than general ability; within it, the unseen item with the most
  *   information at that pattern's current estimate.
  * - Stop: every pattern's SE <= seStop (after minItems), or maxItems.
+ *   (The screen also stops at timeLimitMinutes.)
+ * - Survey ratings, when given, replace the general estimate as a rated
+ *   pattern's prior mean, so the test checks the claim instead of starting cold.
  *
  * Mirrored in ml/src/cat.py for the simulation study; parity-tested.
  */
@@ -25,6 +28,7 @@ export interface PlacementConfig {
   seStop: number
   maxItems: number
   minItems: number
+  timeLimitMinutes: number
 }
 
 export interface CatItem {
@@ -57,6 +61,8 @@ export function estimateAll(
   patternIds: string[],
   responses: CatResponse[],
   cfg: PlacementConfig = PARAMS.placement,
+  /** Prior mean per pattern (from the comfort survey); unrated patterns use the general estimate. */
+  priors: ReadonlyMap<string, number> = new Map(),
 ): CatEstimates {
   const nodes = grid(cfg.grid.min, cfg.grid.max, cfg.grid.points)
   const answered = responses.flatMap((r) => {
@@ -67,7 +73,7 @@ export function estimateAll(
   const patterns = new Map<string, Estimate>()
   for (const p of patternIds) {
     const mine = answered.filter((x) => x.item.patterns.includes(p)).map((x) => x.answer)
-    patterns.set(p, eap(mine, { mean: general.theta, sd: cfg.patternSd }, nodes))
+    patterns.set(p, eap(mine, { mean: priors.get(p) ?? general.theta, sd: cfg.patternSd }, nodes))
   }
   return { general, patterns }
 }

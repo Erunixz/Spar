@@ -58,7 +58,7 @@ describe('UUID migration (v4 -> v8)', () => {
     expect(rec!.id).toMatch(UUID)
 
     expect(await db.sessions.get('s-1')).toMatchObject({ minutesPlanned: 10, endedAt: 9 })
-    expect(db.tables.map((t) => t.name).sort()).toEqual(['lcLogs', 'recommendations', 'responses', 'selfRatings', 'sessions', 'settings'])
+    expect(db.tables.map((t) => t.name).sort()).toEqual(['lcLogs', 'placements', 'recommendations', 'responses', 'selfRatings', 'sessions', 'settings'])
 
     // Indexes still work and new rows get UUIDs too.
     expect(await db.responses.where('sessionId').equals('s-1').count()).toBe(2)
@@ -79,7 +79,8 @@ describe('UUID migration (v4 -> v8)', () => {
     expect((await db.settings.get('survey'))?.value.status).toBe('done')
 
     const data = await exportAllData()
-    expect(data.format).toBe('spar-export/3')
+    expect(data.format).toBe('spar-export/4')
+    expect(data.placements).toEqual([])
     expect(data.selfRatings).toHaveLength(2)
     db.close()
   })

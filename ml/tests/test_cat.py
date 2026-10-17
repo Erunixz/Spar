@@ -10,7 +10,7 @@ def test_settings_match_the_app():
     ts = cat.params_ts_numbers()
     p = cat.PLACEMENT
     assert ts["min"] == p["grid"]["min"] and ts["max"] == p["grid"]["max"] and ts["points"] == p["grid"]["points"]
-    for key in ("generalPriorSd", "patternSd", "weakTilt", "seStop", "maxItems", "minItems"):
+    for key in ("generalPriorSd", "patternSd", "weakTilt", "seStop", "maxItems", "minItems", "timeLimitMinutes"):
         assert ts[key] == p[key], key
 
 
@@ -41,6 +41,13 @@ def test_eap_returns_prior_without_answers_and_moves_with_evidence():
     up, _ = cat.eap([(1, 1, True)], 0, 1, nodes)
     down, _ = cat.eap([(1, 1, False)], 0, 1, nodes)
     assert up > 0 > down
+
+
+def test_survey_prior_sets_a_patterns_starting_point():
+    items, patterns = cat.load_bank()
+    bank = {i.id: i for i in items}
+    general, per = cat.estimate_all(bank, patterns, [], priors={patterns[0]: 1.2})
+    assert abs(per[patterns[0]][0] - 1.2) < 1e-3 and abs(per[patterns[1]][0] - general[0]) < 1e-3
 
 
 def test_runs_a_full_placement_on_the_real_bank():
